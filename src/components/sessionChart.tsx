@@ -1,19 +1,29 @@
-import React from 'react';
-import ReactApexChart from 'react-apexcharts';
+import React from 'react'
+import ReactApexChart from 'react-apexcharts'
+import { SessionData } from '../app'
 
 interface ReactApexChartProps {
-  dataArray: number[]; // The array of values to plot
+  dataArray:  SessionData // The array of values to plot
 }
 
 export const SessionChart: React.FC<ReactApexChartProps> = ({ dataArray }) => {
   // Create the series data with the given dataArray
   const series = [{
-    name: "Values",
-    data: dataArray
-  }];
+    name: 'BMP',
+    data: dataArray?.BPM ?? []
+  },
+  {
+    name: 'EMG',
+    data: dataArray?.EMG ?? []
+  },
+  {
+    name: 'Velocidade',
+    data: dataArray?.velocidade ?? []
+  }
+];
 
   // Generate the x-axis categories with intervals of  5
-  const categories = Array.from({ length: Math.ceil(dataArray.length) }, (_, i) => i *  5);
+  const categories = Array.from({ length: Math.ceil(dataArray.EMG?.length ?? 0) }, (_, i) => i *  5)
 
   // Set up the chart options
   const options = {
@@ -22,12 +32,14 @@ export const SessionChart: React.FC<ReactApexChartProps> = ({ dataArray }) => {
         show: false // Hide the toolbar
       }
     },
+    // stroke: {
+    //   curve: 'smooth' // curve: ['straight', 'smooth', 'monotoneCubic', 'stepline']
+    // },
     xaxis: {
       categories: categories // Use the generated categories
     },
-    yaxis: {
-      min:  0, // Start Y-axis at  0
-      max: Math.max(...dataArray) // Set the maximum value of Y-axis based on the data
+    dataLabels: {
+      enabled: false
     }
   };
 
@@ -37,7 +49,7 @@ export const SessionChart: React.FC<ReactApexChartProps> = ({ dataArray }) => {
       <ReactApexChart
         options={options}
         series={series}
-        type="line" // Change to the desired chart type
+        type='area' // Change to the desired chart type
         height={350}
       />
     </div>
