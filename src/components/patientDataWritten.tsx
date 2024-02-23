@@ -1,16 +1,18 @@
-import { SessionData } from '../app'
+import { SessionData } from '../utils/sessionData'
 
 
 interface PatientDataWrittenProps {
     session: SessionData
-    selectedSessionIndex: number
+    selectedSession: string
+    selectedSessionIndex: number[]
+    index: number
 }
 
-export const PatientDataWritten: React.FC<PatientDataWrittenProps> = ({ session, selectedSessionIndex }) => {
+export const PatientDataWritten: React.FC<PatientDataWrittenProps> = ({ session, selectedSession , selectedSessionIndex, index }) => {
     return (
-        <div>      
+        <div key={index}>      
           <div className='border border-gray-200 rounded-md p-4 my-4'>
-            <h2 className='text-lg font-bold'>Informações por escrito da sessão { selectedSessionIndex }</h2>
+            <h2 className='text-lg font-bold'>Informações por escrito da sessão { selectedSessionIndex[index] } - { selectedSession }</h2>
             <p >Distância: { session.distancia }</p>
             <p className='bg-gray-200'>Pontuação: { session.pontuacao }</p>
             <p>Tempo de sessão: { session.tempoDeSessao }</p>
