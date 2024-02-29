@@ -3,28 +3,22 @@ import ReactDOM from 'react-dom/client'
 import { App } from './app'
 import './index.css'
 
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createHashRouter, HashRouter, RouterProvider } from 'react-router-dom'
 
 import { Home } from './routes/home'
 import { SessionsChart } from './routes/sessionsChart'
 import { NotFound } from './routes/notFound'
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
-    path: '/victusExergame-graphs',
-    element: <App />,
+    path: '/',
+    element: <Home />,
     errorElement: <NotFound />,
-    children: [
-      {
-        path: '/',
-        element: < Home />
-      },
-      {
-        path: '/graficos',
-        element: < SessionsChart />
-      }
-    ]
-  }
+  },
+  { 
+    path: '/graficos',
+    element: <SessionsChart />,
+    },
 ])
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

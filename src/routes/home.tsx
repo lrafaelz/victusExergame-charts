@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 export const Home = () => {
 
   const handleIndividualSessions = () => {
-    navigate('/victusExergame-graphs/graficos')
+    navigate('/graficos')
   }
 
   const navigate = useNavigate()
