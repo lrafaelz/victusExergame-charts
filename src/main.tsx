@@ -6,7 +6,7 @@ import './index.css'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import { Home } from './routes/home'
-import { SingleSessionChart } from './routes/sessionsChart'
+import { SessionsChart } from './routes/sessionsChart'
 import { NotFound } from './routes/notFound'
 
 const router = createBrowserRouter([
@@ -16,12 +16,12 @@ const router = createBrowserRouter([
     errorElement: <NotFound />,
     children: [
       {
-        path: '/',
+        path: '/victusExergame-graphs',
         element: < Home />
       },
       {
-        path: '/sessoesIndividuais',
-        element: < SingleSessionChart />
+        path: 'victusExergame-graphs/graficos',
+        element: < SessionsChart />
       }
     ]
   }

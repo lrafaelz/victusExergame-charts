@@ -15,7 +15,7 @@ import { Outlet } from 'react-router-dom'
 // Define os tipos de dados que esperamos obter do Firestore
 
 
-export const SingleSessionChart: React.FC = () => {
+export const SessionsChart: React.FC = () => {
   
   const [sessions, setSessions] = useState<SessionData[]>([]) // Limpar sessions quando o usuário selecionar um novo paciente e uma nova sessão (novo gráfico)
   const [sessionTimestamps, setSessionTimestamps] = useState<string[]>([])
