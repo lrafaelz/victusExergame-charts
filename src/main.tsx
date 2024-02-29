@@ -11,7 +11,7 @@ import { NotFound } from './routes/notFound'
 
 const router = createBrowserRouter([
   {
-    path: '/',
+    path: '/victusExergame-graphs',
     element: <App />,
     errorElement: <NotFound />,
     children: [
