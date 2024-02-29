@@ -1,9 +1,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { App } from './app'
 import './index.css'
 
-import { createHashRouter, HashRouter, RouterProvider } from 'react-router-dom'
+import { createHashRouter, RouterProvider } from 'react-router-dom'
 
 import { Home } from './routes/home'
 import { SessionsChart } from './routes/sessionsChart'
