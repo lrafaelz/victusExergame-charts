@@ -16,11 +16,11 @@ const router = createBrowserRouter([
     errorElement: <NotFound />,
     children: [
       {
-        path: '/victusExergame-graphs',
+        path: '/',
         element: < Home />
       },
       {
-        path: 'victusExergame-graphs/graficos',
+        path: '/graficos',
         element: < SessionsChart />
       }
     ]
