@@ -31,16 +31,16 @@ export const SessionsDropdown: React.FC<SessionsDropdownProps> = ({ options, sel
         onCheckedChange={handleCheckboxChange}
         defaultChecked
         id="c1"
-        className="bg-gray-50 w-6 h-6 rounded-full flex items-center justify-center shadow-md hover:bg-blue-300 focus:ring-2 focus:ring-blue"
+        className="bg-gray-50 w-6 h-6 rounded-full flex items-center justify-center shadow-md hover:bg-orange-100 focus:ring-2 focus:ring-blue"
       >
-        <Checkbox.Indicator className="text-blue-500">
+        <Checkbox.Indicator className="text-orangeVictus">
           <CheckIcon />
         </Checkbox.Indicator>
       </Checkbox.Root>
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           disabled={isDropdownDisabled}
-          className={`my-5 bg-blue-500 text-white px-4 py-2 rounded mt-5 ${isDropdownDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`my-5 bg-orangeVictus text-white px-4 py-2 rounded mt-5 ${isDropdownDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {selectedOption || "Selecione a sessão"}
         </DropdownMenu.Trigger>

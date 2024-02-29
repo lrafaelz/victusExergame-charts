@@ -6,6 +6,9 @@ export default {
   ],
   theme: {
     extend: {
+      colors: {
+        'orangeVictus': '#f6964f'
+      },
       fontFamily: {
         sans: ['Inter', 'sans-serif']
       },

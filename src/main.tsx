@@ -5,9 +5,9 @@ import './index.css'
 
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
-import { Home } from './routers/home'
-import { SingleSessionChart } from './routers/sessionsChart'
-import { NotFound } from './routers/notFound'
+import { Home } from './routes/home'
+import { SingleSessionChart } from './routes/sessionsChart'
+import { NotFound } from './routes/notFound'
 
 const router = createBrowserRouter([
   {

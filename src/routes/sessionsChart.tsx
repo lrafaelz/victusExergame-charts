@@ -21,6 +21,7 @@ export const SingleSessionChart: React.FC = () => {
   const [sessionTimestamps, setSessionTimestamps] = useState<string[]>([])
 
   const [selectedSessions, setSelectedSessions] = useState<string[]>([])
+  const [sessionsSelected_timestamps, setSessionsSelected_timestamps] = useState<string[]>([])
   const selectedSessionIndex: number[] = []
 
   const [patientNames, setPatientName] = useState<string[]>([])
@@ -29,9 +30,15 @@ export const SingleSessionChart: React.FC = () => {
   // Função para lidar com a mudança de opção no dropdown
   const handleSessionSelect = (selectedOption: string, selectedIndex: number, itemIndex: number) => {
     setSessions([])
-    setSelectedSessions(prevSelectedSessions => [...prevSelectedSessions, selectedOption]);
+    setSessionsSelected_timestamps([])
+    // Lida com a seleção de sessão em cada um dos três dropdowns
     selectedSessionIndex[itemIndex] = selectedIndex
-
+    setSelectedSessions(prevSelectedSessions => {
+      const newSelectedSessions = [...prevSelectedSessions]
+      newSelectedSessions[itemIndex] = selectedOption
+      return newSelectedSessions
+    })
+    console.log('selectedSessions: ' + selectedSessions)
   }
   
   const handleSelectedPatientName = (selectedOption: string) => {
@@ -63,6 +70,7 @@ export const SingleSessionChart: React.FC = () => {
 
   const handleButtonSubmit = (event: React.FormEvent) => {
     event.preventDefault()
+    setSessionsSelected_timestamps(selectedSessions)
     fetchSessionData()
   }
 
@@ -87,7 +95,10 @@ export const SingleSessionChart: React.FC = () => {
   
   async function iterateThroughSelectedSessionsArray(selectedSessionsArray: string[]): Promise<void> {
     for (const data of selectedSessionsArray) {
-      await getData(data);
+      if(data)
+        await getData(data);
+      else
+        console.log('Nenhuma sessão selecionada no index: ' + selectedSessionsArray.indexOf(data))
     }
   }
 
@@ -135,10 +146,10 @@ export const SingleSessionChart: React.FC = () => {
             />
         </div>
           <div className='text-center'>
-            <button type='submit' className='bg-blue-500 text-white px-4 py-2 rounded'>Gerar gráfico</button>
+            <button type='submit' className='bg-orangeVictus text-white px-4 py-2 rounded'>Gerar gráfico</button>
           </div>
         {sessions.length > 0 && < SessionChart dataArray={sessions} />}
-        {sessions.length > 0 && sessions.map((session, index) => (< PatientDataWritten session={session} selectedSession={selectedSessions[index]} selectedSessionIndex={selectedSessionIndex} index={index} />))}
+        {sessions.length > 0 && sessions.map((session, index) => (< PatientDataWritten session={session} selectedSession={ sessionsSelected_timestamps[index] } index={index} />))}
         
       </form>      
       <Outlet />

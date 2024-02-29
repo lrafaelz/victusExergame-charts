@@ -11,7 +11,7 @@ export const PatientNamesDropdown: React.FC<PatientNamesDropdownProps> = ({  opt
 
   return (
     <DropdownMenu.Root>
-    <DropdownMenu.Trigger className="bg-blue-500 text-white px-4 py-2 rounded my-4">
+    <DropdownMenu.Trigger className="bg-orangeVictus text-white px-4 py-2 rounded my-4">
         {selectedOption||"Selecione o paciente"}
     </DropdownMenu.Trigger>
     <DropdownMenu.Content className=" w-48 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg z-10" >
