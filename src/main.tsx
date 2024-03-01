@@ -5,19 +5,26 @@ import './index.css'
 import { createHashRouter, RouterProvider } from 'react-router-dom'
 
 import { Home } from './routes/home'
+import { App } from './app'
 import { SessionsChart } from './routes/sessionsChart'
 import { NotFound } from './routes/notFound'
 
 const router = createHashRouter([
   {
     path: '/',
-    element: <Home />,
+    element: <App />,
     errorElement: <NotFound />,
-  },
-  { 
-    path: '/graficos',
-    element: <SessionsChart />,
-    },
+    children: [
+      {
+        path: '/',
+        element: <Home />,
+      },
+      {
+        path: '/graficos',
+        element: <SessionsChart />,
+      },
+    ]
+  }  
 ])
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
