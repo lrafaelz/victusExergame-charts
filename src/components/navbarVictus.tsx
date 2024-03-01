@@ -13,7 +13,7 @@ export function NavbarVicuts() {
             <Link className='p-3' to='/'>
             <img
               alt=""
-              src='/victusExergame-graphs/src/assets/images/VICTUS1b.png'
+              src='./victusExergame-graphs/src/assets/images/VICTUS1b.png'
               width="300"
               height="300"
               className='align-top'
@@ -24,7 +24,7 @@ export function NavbarVicuts() {
           <Link className='p-3 flex flex-row items-center justify-center' to='https://forms.gle/Z3hnWQDT6F3o1Vi76' target='blank_' rel='noopener noreferrer'>
           <p className='text-center align-middle text-lg font-medium'>Avalie o Victus Charts:</p>
             <img
-             src="/victusExergame-graphs/src/assets/images/formQrCode.svg"
+             src="./victusExergame-graphs/src/assets/images/formQrCode.svg"
               width="100"
               height="100"
               className='align-top'
