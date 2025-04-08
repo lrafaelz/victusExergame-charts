@@ -1,41 +1,65 @@
-import { Link } from 'react-router-dom'
+import { Link as RouterLink } from "react-router-dom";
+import { Box, Container, AppBar, Typography, Toolbar } from "@mui/material";
 
-import Container from 'react-bootstrap/Container';
-import Navbar from 'react-bootstrap/Navbar';
-
-import logo from '../assets/images/VICTUS1b.png'; // Ajuste o caminho conforme necessário
-import qrCode from '../assets/images/formQrCode.svg'; // Ajuste o caminho conforme necessário
-
+import logo from "../assets/images/VICTUS1b.png";
+import qrCode from "../assets/images/formQrCode.svg";
 
 export function NavbarVicuts() {
   return (
     <>
-      <Navbar className='border-b-2'>
-        <Container className='flex flex-row'>
-          <Navbar.Brand>
-            <Link className='p-3' to='/'>
-            <img
-              alt=""
-              src={logo}
-              width="300"
-              height="300"
-              className='align-top'
-            />{' '}
-            </Link>
-          </Navbar.Brand>
-          <div className='grow h-14'/>
-          <Link className='p-3 flex flex-row items-center justify-center' to='https://forms.gle/Z3hnWQDT6F3o1Vi76' target='blank_' rel='noopener noreferrer'>
-          <p className='text-center align-middle text-lg font-medium'>Avalie o Victus Charts:</p>
-            <img
-             src={qrCode}
-              width="100"
-              height="100"
-              className='align-top'
-             />
-          </Link>
-        </Container>
-      </Navbar>
+      <AppBar position="static" sx={{ backgroundColor: "#fff" }}>
+        <Toolbar>
+          <Container
+            sx={{ display: "flex", flexDirection: "row", alignItems: "center" }}
+          >
+            <Box component={RouterLink} to="/" sx={{ p: 1 }}>
+              <img
+                alt="Victus Logo"
+                src={logo}
+                width="200"
+                height="50"
+                style={{ verticalAlign: "top" }}
+              />
+            </Box>
+
+            <Box sx={{ flexGrow: 1 }} />
+
+            <Box
+              component="a"
+              href="https://forms.gle/Z3hnWQDT6F3o1Vi76"
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{
+                p: 2,
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                textDecoration: "none",
+                color: "inherit",
+              }}
+            >
+              <Typography
+                sx={{
+                  textAlign: "center",
+                  mr: 2,
+                  fontSize: "1rem",
+                  fontWeight: 500,
+                }}
+              >
+                Avalie o Victus Charts:
+              </Typography>
+              <img
+                src={qrCode}
+                width="80"
+                height="80"
+                style={{ verticalAlign: "middle" }}
+                alt="QR Code para avaliação"
+              />
+            </Box>
+          </Container>
+        </Toolbar>
+      </AppBar>
     </>
   );
 }
-
