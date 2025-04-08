@@ -1,48 +1,44 @@
-import { useNavigate } from "react-router-dom"
-import { Box, Typography, Button } from "@mui/material"
-import { useEffect } from "react"
+import { useNavigate } from 'react-router-dom';
+import { Box, Typography, Button } from '@mui/material';
 
 export const Home = () => {
+  const handleIndividualSessions = () => {
+    navigate('/graficos');
+  };
 
-const handleIndividualSessions = () => {
-    navigate('/graficos')
-}
+  const navigate = useNavigate();
 
-
-const navigate = useNavigate()
-
-
-
-return (
+  return (
     <Box
-    sx={{
+      sx={{
         display: 'flex',
         flexDirection: 'column',
+        p: 5,
         gap: 3,
         alignItems: 'center',
-        justifyContent: 'center'
-    }}
+        justifyContent: 'center',
+      }}
     >
-        <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+      <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
         Selecione uma das opções abaixo
-        </Typography>
-        <Button 
-        variant="contained" 
+      </Typography>
+      <Button
+        variant="contained"
         onClick={handleIndividualSessions}
         sx={{
-            backgroundColor: 'primary.main',
-            color: 'white',
-            px: 4,
-            py: 1,
-            borderRadius: 1,
-            width: 240,
-            '&:hover': {
+          backgroundColor: 'primary.main',
+          color: 'white',
+          px: 4,
+          py: 1,
+          borderRadius: 1,
+          width: 240,
+          '&:hover': {
             backgroundColor: 'primary.dark',
-            }
+          },
         }}
-        >
+      >
         Gerar gráficos a partir das sessões
-        </Button>
+      </Button>
     </Box>
-)
-}
+  );
+};

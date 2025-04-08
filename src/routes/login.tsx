@@ -1,184 +1,220 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  TextField,
   Button,
-  Paper,
   InputAdornment,
   IconButton,
-  useMediaQuery,
-} from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { useTheme } from "@mui/material/styles";
-import { Link } from "react-router-dom";
+  FormControl,
+  InputLabel,
+  OutlinedInput,
+} from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { Link } from 'react-router-dom';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import db, { auth } from '../firebase';
+import { getDoc, doc, setDoc, getCountFromServer, collection } from 'firebase/firestore';
+import { logo, sipinnerLoading } from '../assets';
+import Lottie from 'lottie-react';
 
 const Login = () => {
-  console.log("Login component rendered");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
-  const muiTheme = useTheme();
-  const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
-
-  console.log("isMobile:", isMobile);
+  const [loginError, setLoginError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleTogglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
+    setShowPassword(prev => !prev);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const countUsers = async () => {
+    const usersRef = collection(db, 'VictusExergame', 'SRF', 'Fisioterapeutas');
+    const snapshot = await getCountFromServer(usersRef);
+    return snapshot.data().count;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Login attempt with:", { email, password });
+    setLoading(true);
+    try {
+      const { user } = await signInWithEmailAndPassword(auth, email, password);
+      const userRef = doc(db, 'VictusExergame', 'SRF', 'Fisioterapeutas', email);
+      const docSnap = await getDoc(userRef);
+
+      const oldHistory =
+        docSnap.exists() && Array.isArray(docSnap.data().loginHistory)
+          ? docSnap.data().loginHistory
+          : [];
+
+      const updatedHistory = [new Date().toISOString(), ...oldHistory].slice(0, 10);
+
+      const userData = {
+        email: user.email,
+        uid: user.uid,
+        loginHistory: updatedHistory,
+      };
+
+      if (!userData.email) {
+        const amountUsers = await countUsers();
+        const userWithoutEmail = 'user_' + (amountUsers + 1).toString();
+        userData.email = userWithoutEmail;
+      }
+      await setDoc(userRef, userData, { merge: true });
+    } catch (error: unknown) {
+      const firebaseError = error as { code?: string; message?: string };
+      if (
+        firebaseError.code === 'auth/user-not-found' ||
+        firebaseError.code === 'auth/wrong-password'
+      ) {
+        setLoginError('Email ou senha incorretos.');
+      } else if (firebaseError.code === 'auth/invalid-email') {
+        setLoginError('Formato de email inválido.');
+      } else if (firebaseError.code === 'auth/user-disabled') {
+        setLoginError('Esta conta foi desativada.');
+      } else if (firebaseError.code === 'auth/too-many-requests') {
+        setLoginError('Muitas tentativas de login. Tente novamente mais tarde.');
+        setLoginError('Muitas tentativas de login. Tente novamente mais tarde.');
+      } else {
+        setLoginError('Erro ao tentar fazer login. Tente novamente mais tarde.');
+      }
+    }
+    setLoading(false);
   };
 
   return (
     <Box
       sx={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        padding: 3,
-        bgcolor: "background.default",
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: { xs: 'column', sm: 'row' },
+        height: '100%',
+        p: '10%',
+        gap: 10,
       }}
     >
-      <Paper
-        elevation={3}
+      <Box
+        component="img"
+        src={logo}
+        alt="VICTUS Logo"
         sx={{
-          width: "100%",
-          maxWidth: { xs: "100%", sm: 450 },
-          padding: { xs: 2, sm: 4 },
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          borderRadius: 2,
+          width: { xs: '90%', sm: '40%' },
+        }}
+      />
+
+      <Box
+        component="form"
+        onSubmit={handleSubmit}
+        sx={{
+          width: '100%',
+          maxWidth: { xs: '100%', sm: '50%', md: '40%' },
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
         }}
       >
-        <Box
-          component="img"
-          src="/src/assets/images/VICTUS1b.svg"
-          alt="VICTUS Logo"
-          sx={{
-            width: { xs: "70%", sm: "50%" },
-            maxWidth: 200,
-            marginBottom: 3,
-          }}
-        />
-
         <Typography
-          variant="h5"
-          component="h1"
+          textAlign="center"
           sx={{
+            typography: { sm: 'h4', md: 'h3', lg: 'h2' },
             mb: 3,
-            fontWeight: 600,
-            color: "primary.main",
+            color: 'primary.main',
+            display: { xs: 'none', sm: 'block' },
           }}
         >
-          Login
+          Bem vindo de volta 👋
         </Typography>
-
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-          }}
-        >
-          <TextField
-            fullWidth
-            label="Email"
+        <FormControl fullWidth variant="outlined">
+          <InputLabel htmlFor="email-input">E-mail</InputLabel>
+          <OutlinedInput
+            id="email-input"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            variant="outlined"
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                "&.Mui-focused fieldset": {
-                  borderColor: "primary.main",
-                },
-              },
+            onChange={e => {
+              setEmail(e.target.value);
+              setLoginError('');
             }}
+            required
+            label="E-mail"
+            error={!!loginError}
           />
-
-          <TextField
-            fullWidth
-            label="Senha"
-            type={showPassword ? "text" : "password"}
+        </FormControl>
+        <FormControl fullWidth variant="outlined">
+          <InputLabel htmlFor="password-input">Senha</InputLabel>
+          <OutlinedInput
+            id="password-input"
+            type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={e => {
+              setPassword(e.target.value);
+              setLoginError('');
+            }}
             required
-            variant="outlined"
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={handleTogglePasswordVisibility}
-                    edge="end"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                "&.Mui-focused fieldset": {
-                  borderColor: "primary.main",
-                },
-              },
-            }}
+            error={!!loginError}
+            endAdornment={
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label={showPassword ? 'ocultar senha' : 'mostrar senha'}
+                  onClick={handleTogglePasswordVisibility}
+                  edge="end"
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            }
+            label="Senha"
           />
-
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth
+        </FormControl>
+        {loginError && (
+          <Typography variant="body2" color="error" textAlign="center">
+            {loginError}
+          </Typography>
+        )}
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          loading={loading}
+          disabled={loading}
+          loadingIndicator={
+            <Box sx={{ height: 70, width: 70 }}>
+              <Lottie animationData={sipinnerLoading} loop={true} autoplay={true} />
+            </Box>
+          }
+          sx={{
+            mt: 2,
+            py: 1.2,
+            bgcolor: 'primary.main',
+            color: 'white',
+            fontWeight: 600,
+          }}
+        >
+          Entrar
+        </Button>
+        <Box
+          sx={{
+            mt: 2,
+            textAlign: 'center',
+          }}
+        >
+          <Typography
+            component={Link}
+            to="/contact"
             sx={{
-              mt: 2,
-              py: 1.2,
-              bgcolor: "primary.main",
-              color: "white",
-              fontWeight: 600,
-              "&:hover": {
-                bgcolor: "primary.dark",
+              color: 'text.secondary',
+              textDecoration: 'none',
+              '&:hover': {
+                color: 'primary.main',
+                textDecoration: 'underline',
               },
+              fontSize: '0.9rem',
             }}
           >
-            Entrar
-          </Button>
-
-          <Box
-            sx={{
-              mt: 2,
-              textAlign: "center",
-            }}
-          >
-            <Typography
-              component={Link}
-              to="/contact"
-              sx={{
-                color: "text.secondary",
-                textDecoration: "none",
-                "&:hover": {
-                  color: "primary.main",
-                  textDecoration: "underline",
-                },
-                fontSize: "0.9rem",
-              }}
-            >
-              Não possuí conta? Solicite a criação de sua conta
-            </Typography>
-          </Box>
+            Não possuí conta? Solicite a criação de sua conta
+          </Typography>
         </Box>
-      </Paper>
+      </Box>
     </Box>
   );
 };

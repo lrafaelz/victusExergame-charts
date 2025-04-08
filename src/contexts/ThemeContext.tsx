@@ -1,7 +1,7 @@
-import React, { useMemo } from "react";
-import { createContext, useContext, useState } from "react";
-import { ThemeProvider } from "@mui/material/styles";
-import generateTheme from "../theme";
+import React, { useMemo } from 'react';
+import { createContext, useContext, useState } from 'react';
+import { ThemeProvider } from '@mui/material/styles';
+import generateTheme from '../theme';
 
 export type ThemeColors = {
   primary: string;
@@ -13,23 +13,19 @@ const ThemeContext = createContext<{
   themeColors: ThemeColors;
   setThemeColors: React.Dispatch<React.SetStateAction<ThemeColors>>;
 }>({
-  themeColors: { primary: "#f47619", secondary: "#f8aa71", dark: "#d66817" },
+  themeColors: { primary: '#f47619', secondary: '#f8aa71', dark: '#c26a29' },
   setThemeColors: () => {
-    console.warn("setThemeColors foi chamado fora do ThemeContextProvider.");
+    console.warn('setThemeColors foi chamado fora do ThemeContextProvider.');
   },
 });
 
 export const useThemeContext = () => useContext(ThemeContext);
 
-export const ThemeContextProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+export const ThemeContextProvider = ({ children }: { children: React.ReactNode }) => {
   const [themeColors, setThemeColors] = useState<ThemeColors>({
-    primary: "#f47619",
-    secondary: "#f8aa71",
-    dark: "#d66817",
+    primary: '#f47619',
+    secondary: '#F69045',
+    dark: '#d66817',
   });
 
   // console.log('themeColors', themeColors)

@@ -1,17 +1,16 @@
-import React from "react";
+import React from 'react';
 
-import { Outlet } from "react-router-dom";
-import { NavbarVicuts } from "./components/navbarVictus";
-import { Box } from "@mui/material";
-import { ThemeContextProvider } from "./contexts/ThemeContext";
+import { Outlet, useLocation } from 'react-router-dom';
+import { Navbar } from './components/navbar/navbar';
+import { Box } from '@mui/material';
 
 export const App: React.FC = () => {
   return (
-    <ThemeContextProvider>
-      <NavbarVicuts />
-      <Box sx={{ py: 5 }}>
+    <Box sx={{ height: '100dvh' }}>
+      {useLocation().pathname !== '/login' && <Navbar />}
+      <Box sx={{ height: '100%' }}>
         <Outlet />
       </Box>
-    </ThemeContextProvider>
+    </Box>
   );
 };

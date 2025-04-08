@@ -1,46 +1,42 @@
-import { Box, Typography, Button, Grid } from "@mui/material";
-import { doc, collection, getDocs, getDoc } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
-import db from "../firebase";
-import { SessionsDropdown } from "../components/sessionsDropdown";
-import { PatientNamesDropdown } from "../components/patientNamesDropdown";
-import { SessionChart } from "../components/sessionChart";
-import { PatientDataWritten } from "../components/patientDataWritten";
-import { SessionData } from "../utils/sessionData";
+import { Box, Typography, Button, Grid } from '@mui/material';
+import { doc, collection, getDocs, getDoc } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
+import db from '../firebase';
+import { SessionsDropdown } from '../components/sessionsDropdown';
+import { PatientNamesDropdown } from '../components/patientNamesDropdown';
+import { SessionChart } from '../components/sessionChart';
+import { PatientDataWritten } from '../components/patientDataWritten';
+import { SessionData } from '../utils/sessionData';
 
-import { Outlet } from "react-router-dom";
-// import { HandleSelectedPatientName } from '../utils/firebasePatientsData'
-
-// Define os tipos de dados que esperamos obter do Firestore
+import { Outlet } from 'react-router-dom';
 
 export const SessionsChart: React.FC = () => {
   const [sessions, setSessions] = useState<SessionData[]>([]); // Limpar sessions quando o usuário selecionar um novo paciente e uma nova sessão (novo gráfico)
   const [sessionTimestamps, setSessionTimestamps] = useState<string[]>([]);
 
   const [selectedSessions, setSelectedSessions] = useState<string[]>([]);
-  const [sessionsSelected_timestamps, setSessionsSelected_timestamps] =
-    useState<string[]>([]);
+  const [sessionsSelected_timestamps, setSessionsSelected_timestamps] = useState<string[]>([]);
   const selectedSessionIndex: number[] = [];
 
   const [patientNames, setPatientName] = useState<string[]>([]);
-  const [selectedPatientName, setSelectedPatientName] = useState("");
+  const [selectedPatientName, setSelectedPatientName] = useState('');
 
   // Função para lidar com a mudança de opção no dropdown
   const handleSessionSelect = (
     selectedOption: string,
     selectedIndex: number,
-    itemIndex: number
+    itemIndex: number,
   ) => {
     setSessions([]);
     setSessionsSelected_timestamps([]);
     // Lida com a seleção de sessão em cada um dos três dropdowns
     selectedSessionIndex[itemIndex] = selectedIndex;
-    setSelectedSessions((prevSelectedSessions) => {
+    setSelectedSessions(prevSelectedSessions => {
       const newSelectedSessions = [...prevSelectedSessions];
       newSelectedSessions[itemIndex] = selectedOption;
       return newSelectedSessions;
     });
-    console.log("selectedSessions: " + selectedSessions);
+    console.log('selectedSessions: ' + selectedSessions);
   };
 
   const handleSelectedPatientName = (selectedOption: string) => {
@@ -48,29 +44,24 @@ export const SessionsChart: React.FC = () => {
     setSelectedSessions([]);
   };
 
-  const SRFRef = doc(db, "PhysioGames", "SRF");
-  const patientCollection = collection(SRFRef, "Pacientes");
+  const SRFRef = doc(db, 'PhysioGames', 'SRF');
+  const patientCollection = collection(SRFRef, 'Pacientes');
 
   // Obter nome dos pacientes
   const fetchPatientNames = async () => {
     const querySnapshot = await getDocs(patientCollection);
-    const firebasePatientNames = querySnapshot.docs.map((doc) => doc.id);
-    console.log("Nomes dos pacientes firebase: " + firebasePatientNames);
+    const firebasePatientNames = querySnapshot.docs.map(doc => doc.id);
+    console.log('Nomes dos pacientes firebase: ' + firebasePatientNames);
     setPatientName(firebasePatientNames);
   };
 
   // Obter nomes das sessões
   const fetchSessionNames = async () => {
-    console.log("Nome do paciente selecionado: " + selectedPatientName);
+    console.log('Nome do paciente selecionado: ' + selectedPatientName);
     const selectedPatientRef = doc(patientCollection, selectedPatientName);
-    const sessionsCollection = collection(
-      selectedPatientRef,
-      "Jogos",
-      "VictusExergame",
-      "Sessoes"
-    );
+    const sessionsCollection = collection(selectedPatientRef, 'Jogos', 'VictusExergame', 'Sessoes');
     const querySnapshot = await getDocs(sessionsCollection);
-    const timestamps = querySnapshot.docs.map((doc) => doc.id);
+    const timestamps = querySnapshot.docs.map(doc => doc.id);
     console.log(timestamps);
     setSessionTimestamps(timestamps);
   };
@@ -85,14 +76,14 @@ export const SessionsChart: React.FC = () => {
     const sessionRef = doc(
       patientCollection,
       selectedPatientName,
-      "Jogos",
-      "VictusExergame",
-      "Sessoes",
-      selectedSession
+      'Jogos',
+      'VictusExergame',
+      'Sessoes',
+      selectedSession,
     );
     const docSnapshot = await getDoc(sessionRef);
     if (docSnapshot.exists()) {
-      console.log("Document data:", docSnapshot.data());
+      console.log('Document data:', docSnapshot.data());
       const sessionData: SessionData = {
         BPM: docSnapshot.data().BPM,
         EMG: docSnapshot.data().EMG,
@@ -101,30 +92,27 @@ export const SessionsChart: React.FC = () => {
         pontuacao: docSnapshot.data().pontuacao,
         tempoDeSessao: docSnapshot.data().tempoDeSessao,
       };
-      setSessions((prevSessions) => [...prevSessions, sessionData]);
+      setSessions(prevSessions => [...prevSessions, sessionData]);
     } else {
-      console.log("No such document!");
+      console.log('No such document!');
     }
   }
 
   async function iterateThroughSelectedSessionsArray(
-    selectedSessionsArray: string[]
+    selectedSessionsArray: string[],
   ): Promise<void> {
     for (const data of selectedSessionsArray) {
       if (data) await getData(data);
       else
-        console.log(
-          "Nenhuma sessão selecionada no index: " +
-            selectedSessionsArray.indexOf(data)
-        );
+        console.log('Nenhuma sessão selecionada no index: ' + selectedSessionsArray.indexOf(data));
     }
   }
 
   const fetchSessionData = async () => {
-    console.log("gerando grafico selected sessions", selectedSessions);
+    console.log('gerando grafico selected sessions', selectedSessions);
     iterateThroughSelectedSessionsArray(selectedSessions)
       .then(() => setSelectedSessions([]))
-      .catch((error) => console.error(error)); //Adicionar alerta
+      .catch(error => console.error(error)); //Adicionar alerta
   };
 
   useEffect(() => {
@@ -133,23 +121,19 @@ export const SessionsChart: React.FC = () => {
   }, [selectedPatientName]);
 
   return (
-    <Box sx={{ textAlign: "center" }}>
-      <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+    <Box sx={{ textAlign: 'center' }}>
+      <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
         Análise dos dados das sessões do jogo Vicuts Exergame
       </Typography>
       <form onSubmit={handleButtonSubmit}>
-        <Box sx={{ textAlign: "center" }}>
+        <Box sx={{ textAlign: 'center' }}>
           <PatientNamesDropdown
             options={patientNames}
             selectedOption={selectedPatientName}
             onOptionChange={handleSelectedPatientName}
           />
         </Box>
-        <Grid
-          container
-          spacing={2}
-          sx={{ justifyContent: "center", height: 96 }}
-        >
+        <Grid container spacing={2} sx={{ justifyContent: 'center', height: 96 }}>
           <SessionsDropdown
             options={sessionTimestamps}
             selectedOption={selectedSessions[0]}
@@ -170,14 +154,14 @@ export const SessionsChart: React.FC = () => {
           />
         </Grid>
 
-        <Box sx={{ textAlign: "center" }}>
+        <Box sx={{ textAlign: 'center' }}>
           <Button
             type="submit"
             variant="contained"
             color="primary"
             sx={{
-              bgcolor: "orangeVictus",
-              color: "white",
+              bgcolor: 'orangeVictus',
+              color: 'white',
               px: 4,
               py: 2,
               borderRadius: 1,
