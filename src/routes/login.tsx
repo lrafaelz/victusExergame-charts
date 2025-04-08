@@ -16,6 +16,7 @@ import db, { auth } from '../firebase';
 import { getDoc, doc, setDoc, getCountFromServer, collection } from 'firebase/firestore';
 import { logo, sipinnerLoading } from '../assets';
 import Lottie from 'lottie-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -23,6 +24,8 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const { saveUser } = useAuth();
 
   const handleTogglePasswordVisibility = () => {
     setShowPassword(prev => !prev);
@@ -41,6 +44,7 @@ const Login = () => {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
       const userRef = doc(db, 'VictusExergame', 'SRF', 'Fisioterapeutas', email);
       const docSnap = await getDoc(userRef);
+      saveUser(user);
 
       const oldHistory =
         docSnap.exists() && Array.isArray(docSnap.data().loginHistory)

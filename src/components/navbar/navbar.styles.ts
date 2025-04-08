@@ -9,6 +9,7 @@ export const containerStyle: SxProps = {
   flexDirection: 'row',
   alignItems: 'center',
   justifyContent: 'space-between',
+  px: 4,
 };
 
 export const logoLinkStyle: SxProps = {

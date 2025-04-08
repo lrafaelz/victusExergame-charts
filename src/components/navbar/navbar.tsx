@@ -16,7 +16,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 
 export function Navbar() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
 
   const onLogout = () => {
@@ -24,9 +24,10 @@ export function Navbar() {
       navigate('/login');
     });
   };
+
   return (
     <AppBar position="static" sx={appBarStyle}>
-      <Container sx={containerStyle}>
+      <Container disableGutters maxWidth={false} sx={containerStyle}>
         <Box component={RouterLink} to="/" sx={logoLinkStyle}>
           <Box component={'img'} alt="Victus Logo" src={logo2} width={'200px'} height={'auto'} />
         </Box>
@@ -54,8 +55,9 @@ export function Navbar() {
               component="button"
               sx={{ ...textStyle, cursor: 'pointer' }}
               aria-describedby="logout-tooltip"
+              underline="none"
             >
-              <Typography>Olá, nome fisioterapeuta</Typography>
+              <Typography>Olá, {user?.name || 'fisioterapeuta'}</Typography>
             </Link>
             <Box
               id="logout-tooltip"
