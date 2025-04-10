@@ -1,12 +1,11 @@
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { Box, Container, AppBar, Typography, Link } from '@mui/material';
+import { Box, Container, AppBar, Typography, Link, useTheme } from '@mui/material';
 
 import {
   logo2,
   // qrCode
 } from '../../assets';
 import {
-  appBarStyle,
   containerStyle,
   logoLinkStyle,
   textStyle,
@@ -18,6 +17,7 @@ import { useAuth } from '../../contexts/AuthContext';
 export function Navbar() {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
+  const theme = useTheme();
 
   const onLogout = () => {
     Promise.resolve(logout()).then(() => {
@@ -26,7 +26,16 @@ export function Navbar() {
   };
 
   return (
-    <AppBar position="static" sx={appBarStyle}>
+    <AppBar
+      position="fixed"
+      sx={{
+        zIndex: theme.zIndex.drawer + 1,
+        bgcolor: 'white',
+        boxShadow: 'none',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
       <Container disableGutters maxWidth={false} sx={containerStyle}>
         <Box component={RouterLink} to="/" sx={logoLinkStyle}>
           <Box component={'img'} alt="Victus Logo" src={logo2} width={'200px'} height={'auto'} />
@@ -66,7 +75,6 @@ export function Navbar() {
                 top: '100%',
                 right: 0,
                 bgcolor: 'background.paper',
-                boxShadow: 1,
                 p: 1,
                 borderRadius: 1,
                 display: 'none',

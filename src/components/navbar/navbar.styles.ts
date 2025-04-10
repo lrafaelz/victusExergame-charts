@@ -1,4 +1,5 @@
 import { SxProps } from '@mui/material';
+import { HeaderSize } from '../../utils/constants';
 
 export const appBarStyle: SxProps = {
   backgroundColor: '#fff',
@@ -9,6 +10,7 @@ export const containerStyle: SxProps = {
   flexDirection: 'row',
   alignItems: 'center',
   justifyContent: 'space-between',
+  height: HeaderSize,
   px: 4,
 };
 

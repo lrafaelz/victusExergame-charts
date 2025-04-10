@@ -1,5 +1,5 @@
-import * as React from "react";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import * as React from 'react';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 interface PatientNamesDropdownProps {
   options: string[];
@@ -18,7 +18,7 @@ export const PatientNamesDropdown: React.FC<PatientNamesDropdownProps> = ({
         className="bg-orangeVictus text-white px-4 py-2 rounded my-4"
         //  sx={{ bgcolor: 'orangeVictus', color: 'white', px: 4, py: 2, borderRadius: 1, my: 4 }}
       >
-        {selectedOption || "Selecione o paciente"}
+        {selectedOption || 'Selecione o paciente'}
       </DropdownMenu.Trigger>
       <DropdownMenu.Content
         // sx={{ width: 192, bgcolor: 'white', border: 1, borderColor: 'gray.200', divideY: 'gray.100', borderRadius: 1, boxShadow: 3, zIndex: 10 }}

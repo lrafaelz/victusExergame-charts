@@ -24,6 +24,7 @@ const generateTheme = (themeColors: ThemeColors) => {
         default: '#fffffe',
         paper: '#ffffff',
       },
+      divider: '#d9d9d9',
       text: {
         primary: colors.text,
         secondary: '#333333',
