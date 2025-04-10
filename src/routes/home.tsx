@@ -46,7 +46,7 @@ export const Home = () => {
   return (
     <Box
       sx={{
-        pt: HeaderSize,
+        pt: { xs: 0, md: HeaderSize },
         height: '100%',
       }}
     >
@@ -103,14 +103,12 @@ export const Home = () => {
               <Typography variant="body1">Idade: {selectedPatient.idade}</Typography>
             </Box>
           ) : (
-            <Box sx={{ p: 2 }}>
-              <PatientList
-                patients={patients}
-                compact={false}
-                selectedPatient={selectedPatient}
-                onSelectPatient={onSelectPatient}
-              />
-            </Box>
+            <PatientList
+              patients={patients}
+              compact={false}
+              selectedPatient={selectedPatient}
+              onSelectPatient={onSelectPatient}
+            />
           )}
         </Box>
       ) : (

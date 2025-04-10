@@ -1,5 +1,5 @@
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { Box, Container, AppBar, Typography, Link, useTheme } from '@mui/material';
+import { Box, Container, AppBar, Typography, Link, useTheme, Button } from '@mui/material';
 
 import {
   logo2,
@@ -75,23 +75,32 @@ export function Navbar() {
                 top: '100%',
                 right: 0,
                 bgcolor: 'background.paper',
-                p: 1,
+                border: '1px solid',
+                borderColor: 'divider',
                 borderRadius: 1,
                 display: 'none',
                 zIndex: 1,
                 '.MuiLink-root:hover + &, &:hover': {
                   display: 'block',
                 },
+                overflow: 'none',
               }}
             >
-              <Link
-                component="button"
-                onClick={() => onLogout()}
-                sx={{ ...textStyle, color: 'error.main', cursor: 'pointer' }}
-                underline="none"
+              <Button
+                onClick={onLogout}
+                color="error"
+                sx={{
+                  ...textStyle,
+                  mr: 0,
+                  cursor: 'pointer',
+                  borderRadius: 0,
+                  '&:hover, &:active': {
+                    bgcolor: 'transparent',
+                  },
+                }}
               >
                 <Typography>Deslogar</Typography>
-              </Link>
+              </Button>
             </Box>
           </Box>
         </Box>
