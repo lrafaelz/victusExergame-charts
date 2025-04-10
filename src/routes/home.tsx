@@ -1,12 +1,12 @@
 import { Box, Typography, Drawer, IconButton, useTheme, useMediaQuery } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { PatientList } from '../components/PatientList/PatientList';
 import { useEffect, useState } from 'react';
 import { CloseDrawerWidth, HeaderSize, OpenDrawerWidth } from '../utils/constants';
 import { getAllPacientes } from '../firestore/pacientes';
 import { Patient } from '../types/patientData';
+import { PageHeader } from '../components/PageHeader/PageHeader';
 
 export const Home = () => {
   const [drawerOpen, setDrawerOpen] = useState(true);
@@ -89,19 +89,24 @@ export const Home = () => {
 
       {/* Mobile View */}
       {useMediaQuery(theme.breakpoints.down('sm')) ? (
-        <Box sx={{ height: '100%' }}>
+        <Box sx={{ height: '100%', py: 2 }}>
           {selectedPatient ? (
-            <Box sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <IconButton onClick={handleBackToList}>
-                  <ArrowBackIcon />
-                </IconButton>
-                <Typography variant="h6" sx={{ ml: 1 }}>
-                  {selectedPatient.nome}
-                </Typography>
-              </Box>
-              <Typography variant="body1">Idade: {selectedPatient.idade}</Typography>
-            </Box>
+            <>
+              <PageHeader
+                title={selectedPatient.nome}
+                description={
+                  <>
+                    <Typography variant="body2" color="textDisabled" fontWeight="Medium">
+                      {selectedPatient.idade} anos
+                    </Typography>
+                    <Typography variant="body2" color="textDisabled">
+                      {selectedPatient.detalhes}
+                    </Typography>
+                  </>
+                }
+                onBack={handleBackToList}
+              />
+            </>
           ) : (
             <PatientList
               patients={patients}
