@@ -2,6 +2,7 @@ export interface Patient {
   id?: string;
   nome?: string;
   idade?: number;
+  detalhes?: string;
 }
 
 export interface PacienteSession {

@@ -20,13 +20,11 @@ export const PatientList = ({
 }: PatientListProps) => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Função para remover acentos
   const removeAccents = (str: string) => {
     return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   };
-
   const filteredPatients = patients.filter(patient => {
-    const normalizedName = removeAccents(patient.name.toLowerCase());
+    const normalizedName = removeAccents(patient.nome?.toLowerCase() ?? '');
     const normalizedSearch = removeAccents(searchTerm.toLowerCase());
     return normalizedName.includes(normalizedSearch);
   });
@@ -64,16 +62,16 @@ export const PatientList = ({
           />
         </>
       )}
-      <Grid container spacing={2} justifyContent="center">
+      <Grid container spacing={2} justifyContent="flex-start">
         {!compact
           ? filteredPatients.map((patient, index) => (
               <Grid size={6}>
                 <PatientButton
                   key={index}
-                  name={patient.name}
-                  age={patient.age}
-                  description={patient.description}
-                  isSelected={selectedPatient?.name === patient.name}
+                  name={patient.nome?.split(' ')[0]}
+                  age={patient.idade}
+                  description={patient.detalhes}
+                  isSelected={selectedPatient?.id === patient.id}
                   onClick={() => onSelectPatient(patient)}
                 />
               </Grid>

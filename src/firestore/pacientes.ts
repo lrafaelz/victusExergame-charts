@@ -11,8 +11,9 @@ export async function getAllPacientes(): Promise<Patient[]> {
   const snapshot = await getDocs(pacientesRef);
   return snapshot.docs.map(document => ({
     id: document.id,
-    name: document.data().name || document.id, // Use document ID as fallback for name
-    age: document.data().age || 0, // Default age to 0 if not provided
+    nome: document.data().nome || document.id,
+    idade: document.data().idade || 0,
+    detalhes: document.data().detalhes || '',
   }));
 }
 

@@ -2,8 +2,8 @@ import React from 'react';
 import { Typography, Paper, ButtonBase } from '@mui/material';
 
 interface PatientButtonProps {
-  name: string;
-  age: number;
+  name: string | undefined;
+  age: number | undefined;
   description?: string;
   isSelected?: boolean;
   onClick?: () => void;
@@ -18,34 +18,34 @@ const PatientButton: React.FC<PatientButtonProps> = ({
 }) => {
   return (
     <ButtonBase
+      component={Paper}
+      elevation={1}
       onClick={onClick}
       sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
         width: '100%',
         height: '100%',
-        textAlign: 'left',
+        p: 3,
         borderRadius: 2,
         border: isSelected ? '2px solid' : '1px solid',
         borderColor: isSelected ? 'secondary.main' : 'divider',
       }}
     >
-      <Paper
-        elevation={1}
-        sx={{
-          p: 3,
-          width: '100%',
-          borderRadius: 2,
-        }}
+      <Typography
+        variant="h6"
+        fontWeight="bold"
+        sx={{ width: '100%', textOverflow: 'ellipsis', overflow: 'hidden' }}
       >
-        <Typography variant="h5" fontWeight="bold">
-          {name}
-        </Typography>
-        <Typography variant="h6" color="text.secondary">
-          {age} anos
-        </Typography>
-        <Typography variant="body1" color="text.disabled">
-          {description}
-        </Typography>
-      </Paper>
+        {name}
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ width: '100%' }}>
+        {age} anos
+      </Typography>
+      <Typography variant="body2" color="text.disabled" sx={{ width: '100%' }}>
+        {description}
+      </Typography>
     </ButtonBase>
   );
 };

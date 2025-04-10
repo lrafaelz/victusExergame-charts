@@ -34,11 +34,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchUserName = async (user: UserInfo) => {
     const userRef = doc(db, 'VictusExergame', 'SRF', 'Fisioterapeutas', user.email!);
     const docSnap = await getDoc(userRef);
-    console.log('docSnap', docSnap.data());
     if (docSnap.exists()) {
       return docSnap.data().nome;
     } else {
-      console.log('No such document!');
       return null;
     }
   };

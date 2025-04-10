@@ -13,7 +13,7 @@ export const PatientAvatar = ({
   onSelectPatient,
 }: PatientAvatarProps) => {
   return (
-    <Tooltip title={patient.name}>
+    <Tooltip title={patient.nome}>
       <Avatar
         sx={{
           mx: 'auto',
@@ -22,13 +22,13 @@ export const PatientAvatar = ({
           height: 48,
           fontSize: 16,
           cursor: 'pointer',
-          border: selectedPatient?.name === patient.name ? '2px solid' : '2px solid',
-          borderColor: selectedPatient?.name === patient.name ? 'secondary.main' : 'divider',
+          border: selectedPatient?.id === patient.id ? '2px solid' : '2px solid',
+          borderColor: selectedPatient?.id === patient.id ? 'secondary.main' : 'divider',
         }}
         onClick={() => onSelectPatient(patient)}
       >
         <Typography>
-          {patient.name
+          {(patient.nome || '')
             .split(' ')
             .map(n => n[0])
             .join('')

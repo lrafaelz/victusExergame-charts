@@ -3,35 +3,45 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { PatientList } from '../components/PatientList/PatientList';
-import { useState } from 'react';
-import { Patient } from '../types/patientData';
+import { useEffect, useState } from 'react';
 import { CloseDrawerWidth, HeaderSize, OpenDrawerWidth } from '../utils/constants';
+import { getAllPacientes } from '../firestore/pacientes';
+import { Patient } from '../types/patientData';
 
 export const Home = () => {
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [patients, setPatients] = useState<Patient[]>([]);
   const theme = useTheme();
 
   const handleToggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
   };
 
-  const onSelectPatient = (patient: Patient | null) => {
-    patient?.name !== selectedPatient?.name
-      ? setSelectedPatient(patient)
-      : setSelectedPatient(null);
+  const onSelectPatient = (patient: Patient) => {
+    if (selectedPatient && patient.id === selectedPatient.id) {
+      setSelectedPatient(null);
+    } else {
+      setSelectedPatient(patient);
+    }
   };
 
   const handleBackToList = () => {
     setSelectedPatient(null);
   };
 
-  const patients = [
-    { name: 'Glênio', age: 61 },
-    { name: 'Luis', age: 52 },
-    { name: 'Ana', age: 45 },
-    { name: 'Carlos', age: 67 },
-  ];
+  const fetchPatients = async () => {
+    try {
+      const pacientesFromDB = await getAllPacientes();
+      setPatients(pacientesFromDB);
+    } catch (error) {
+      console.error('Erro ao buscar pacientes:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPatients();
+  }, []);
 
   return (
     <Box
@@ -87,10 +97,10 @@ export const Home = () => {
                   <ArrowBackIcon />
                 </IconButton>
                 <Typography variant="h6" sx={{ ml: 1 }}>
-                  {selectedPatient.name}
+                  {selectedPatient.nome}
                 </Typography>
               </Box>
-              <Typography variant="body1">Idade: {selectedPatient.age}</Typography>
+              <Typography variant="body1">Idade: {selectedPatient.idade}</Typography>
             </Box>
           ) : (
             <Box sx={{ p: 2 }}>
@@ -129,7 +139,7 @@ export const Home = () => {
         >
           <Typography variant="h6" color="textDisabled" sx={{ mb: 3, textAlign: 'center' }}>
             {selectedPatient
-              ? `Paciente selecionado: ${selectedPatient.name}`
+              ? `Paciente selecionado: ${selectedPatient.nome}`
               : 'Selecione um paciente para obter detalhes das sessões'}
           </Typography>
         </Box>
