@@ -65,7 +65,7 @@ export const PatientList = ({
       <Grid container spacing={2} justifyContent="flex-start">
         {!compact
           ? filteredPatients.map((patient, index) => (
-              <Grid size={6}>
+              <Grid size={6} key={index}>
                 <PatientButton
                   key={index}
                   name={patient.nome?.split(' ')[0]}
@@ -77,7 +77,7 @@ export const PatientList = ({
               </Grid>
             ))
           : patients.map((patient, index) => (
-              <Grid size={12}>
+              <Grid size={12} key={index}>
                 <PatientAvatar
                   key={index}
                   patient={patient}

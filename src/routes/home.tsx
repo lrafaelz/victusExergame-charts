@@ -7,6 +7,7 @@ import { CloseDrawerWidth, HeaderSize, OpenDrawerWidth } from '../utils/constant
 import { getAllPacientes } from '../firestore/pacientes';
 import { Patient } from '../types/patientData';
 import { PageHeader } from '../components/PageHeader/PageHeader';
+import SessionComparison from '../components/SessionComparison/SessionComparison';
 
 export const Home = () => {
   const [drawerOpen, setDrawerOpen] = useState(true);
@@ -89,23 +90,16 @@ export const Home = () => {
 
       {/* Mobile View */}
       {useMediaQuery(theme.breakpoints.down('sm')) ? (
-        <Box sx={{ height: '100%', py: 2 }}>
+        <Box sx={{ height: '100%', py: 2, px: 1 }}>
           {selectedPatient ? (
             <>
               <PageHeader
                 title={selectedPatient.nome}
-                description={
-                  <>
-                    <Typography variant="body2" color="textDisabled" fontWeight="Medium">
-                      {selectedPatient.idade} anos
-                    </Typography>
-                    <Typography variant="body2" color="textDisabled">
-                      {selectedPatient.detalhes}
-                    </Typography>
-                  </>
-                }
+                idade={selectedPatient.idade || 0}
+                detalhes={selectedPatient.detalhes || ''}
                 onBack={handleBackToList}
               />
+              <SessionComparison />
             </>
           ) : (
             <PatientList
@@ -120,11 +114,8 @@ export const Home = () => {
         // Desktop Content
         <Box
           sx={{
-            p: 5,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
+            px: 5,
+            py: 2,
             width: {
               xs: '100%',
               sm: drawerOpen
@@ -137,14 +128,31 @@ export const Home = () => {
               sm: drawerOpen ? OpenDrawerWidth : CloseDrawerWidth,
             },
             transition: 'all 0.3s',
-            position: 'relative',
           }}
         >
-          <Typography variant="h6" color="textDisabled" sx={{ mb: 3, textAlign: 'center' }}>
-            {selectedPatient
-              ? `Paciente selecionado: ${selectedPatient.nome}`
-              : 'Selecione um paciente para obter detalhes das sessões'}
-          </Typography>
+          {selectedPatient ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <PageHeader
+                title={selectedPatient.nome}
+                idade={selectedPatient.idade || 0}
+                detalhes={selectedPatient.detalhes || ''}
+              />
+              <SessionComparison />
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100%',
+              }}
+            >
+              <Typography variant="h6" color="textDisabled" sx={{ mb: 3, textAlign: 'center' }}>
+                Selecione um paciente para obter detalhes das sessões
+              </Typography>
+            </Box>
+          )}
         </Box>
       )}
     </Box>

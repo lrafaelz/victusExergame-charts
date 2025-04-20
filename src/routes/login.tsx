@@ -215,7 +215,7 @@ const Login = () => {
               fontSize: '0.9rem',
             }}
           >
-            Não possuí conta? Solicite a criação de sua conta
+            Não possui conta? Solicite a criação de sua conta
           </Typography>
         </Box>
       </Box>
