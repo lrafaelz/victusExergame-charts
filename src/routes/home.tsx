@@ -8,9 +8,12 @@ import { getAllPacientes } from '../firestore/pacientes';
 import { Patient } from '../types/patientData';
 import { PageHeader } from '../components/PageHeader/PageHeader';
 import SesssionFilter from '../components/SesssionFilter/SesssionFilter';
+import { useAuth } from '../contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
 
 export const Home = () => {
   const theme = useTheme();
+  const { user } = useAuth();
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [patients, setPatients] = useState<Patient[]>([]);
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -19,6 +22,10 @@ export const Home = () => {
   useEffect(() => {
     setDrawerOpen(!isMobile);
   }, [isMobile]);
+
+  useEffect(() => {
+    fetchPatients();
+  }, []);
 
   const handleToggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
@@ -45,9 +52,10 @@ export const Home = () => {
     }
   };
 
-  useEffect(() => {
-    fetchPatients();
-  }, []);
+  // Redireciona para /login se não estiver logado
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <Box
