@@ -1,4 +1,12 @@
-import { Box, Typography, Drawer, IconButton, useTheme, useMediaQuery } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Drawer,
+  IconButton,
+  useTheme,
+  useMediaQuery,
+  CircularProgress,
+} from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import { PatientList } from '../components/PatientList/PatientList';
@@ -13,7 +21,7 @@ import { Navigate } from 'react-router-dom';
 
 export const Home = () => {
   const theme = useTheme();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [patients, setPatients] = useState<Patient[]>([]);
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -52,7 +60,22 @@ export const Home = () => {
     }
   };
 
-  // Redireciona para /login se não estiver logado
+  // Evita flash de redirecionamento: só redireciona se loading for false e user for null
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          width: '100vw',
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
   if (!user) {
     return <Navigate to="/login" replace />;
   }

@@ -13,14 +13,11 @@ import {
   Button,
   useTheme,
   SelectChangeEvent,
-  ButtonGroup,
   IconButton,
   Modal,
 } from '@mui/material';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
-import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 import moment from 'moment';
 import 'moment/locale/pt-br';
 import { getPacientePista } from '../../firestore/pacientes';
@@ -29,6 +26,7 @@ import ReactApexChart from 'react-apexcharts';
 import SessionComparison from '../SessionComparison/SessionComparison';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 
 interface SeriesItem {
   name: string;
@@ -251,19 +249,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   const handleTypeViewChange = () =>
     setComparisonType(ct => (ct === 'sessions' ? 'date' : 'sessions'));
 
-  // Função para recarregar os dados
-  const handleReload = async () => {
-    if (!patientId) return;
-    const sessions = await getPacientePista(patientId);
-    const ids = sessions.map(s => s.id);
-    setAvailableSessions(ids);
-    const dataMap: Record<string, PacienteSession> = {};
-    sessions.forEach(s => {
-      dataMap[s.id] = s as unknown as PacienteSession;
-    });
-    setSessionData(dataMap);
-  };
-
   // Função para limpar tudo
   const handleClear = () => {
     setSelectedSessions([]);
@@ -307,7 +292,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
         </Button>
 
         {/* seleção de sessões vs datas */}
-        <Box display="flex" gap={2} justifyContent="center" alignItems="center">
+        <Box display="flex" justifyContent="center" alignItems="center">
           {comparisonType === 'sessions' ? (
             <FormControl size="small" sx={{ minWidth: 230 }}>
               <InputLabel id="session-selection-label">Sessões</InputLabel>
@@ -374,20 +359,11 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
               )}
             </Box>
           )}
-        </Box>
-
-        {/* botões auxiliares */}
-        <ButtonGroup
-          variant="contained"
-          sx={{ bgcolor: 'primary.main', boxShadow: 'none', '&:hover': { boxShadow: 'none' } }}
-        >
-          <IconButton onClick={handleReload}>
-            <CachedRoundedIcon sx={{ color: 'white' }} />
-          </IconButton>
+          {/* Botão de limpar gráfico colado ao select */}
           <IconButton onClick={handleClear}>
-            <ClearRoundedIcon sx={{ color: 'white' }} />
+            <ClearRoundedIcon sx={{ color: 'white', bgcolor: 'primary.main', borderRadius: 1 }} />
           </IconButton>
-        </ButtonGroup>
+        </Box>
       </Box>
 
       {/* gráfico e resumo */}

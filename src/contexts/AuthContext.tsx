@@ -2,15 +2,30 @@ import { createContext, useEffect, useState, useContext } from 'react';
 import db, { auth } from '../firebase';
 import { AuthContextType, UserInfo } from '../types/auth';
 import { doc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 
-const AuthContext = createContext<AuthContextType>({
+const AuthContext = createContext<AuthContextType & { loading: boolean }>({
   user: null,
   logout: () => {},
   saveUser: () => {},
+  loading: true,
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, firebaseUser => {
+      if (firebaseUser) {
+        setUser(firebaseUser as UserInfo);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (user)
@@ -56,7 +71,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(user);
   };
 
-  return <AuthContext.Provider value={{ user, logout, saveUser }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, logout, saveUser, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => useContext(AuthContext);
