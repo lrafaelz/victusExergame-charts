@@ -7,7 +7,7 @@ import { CloseDrawerWidth, HeaderSize, OpenDrawerWidth } from '../utils/constant
 import { getAllPacientes } from '../firestore/pacientes';
 import { Patient } from '../types/patientData';
 import { PageHeader } from '../components/PageHeader/PageHeader';
-import SessionComparison from '../components/SessionComparison/SessionComparison';
+import SesssionFilter from '../components/SesssionFilter/SesssionFilter';
 
 export const Home = () => {
   const [drawerOpen, setDrawerOpen] = useState(true);
@@ -99,7 +99,7 @@ export const Home = () => {
                 detalhes={selectedPatient.detalhes || ''}
                 onBack={handleBackToList}
               />
-              <SessionComparison />
+              <SesssionFilter patientId={selectedPatient.id} />
             </>
           ) : (
             <PatientList
@@ -137,7 +137,7 @@ export const Home = () => {
                 idade={selectedPatient.idade || 0}
                 detalhes={selectedPatient.detalhes || ''}
               />
-              <SessionComparison />
+              <SesssionFilter patientId={selectedPatient.id} />
             </Box>
           ) : (
             <Box

@@ -30,8 +30,7 @@ const generateTheme = (themeColors: ThemeColors) => {
         text: {
           primary: colors.text,
           secondary: '#333333',
-
-          disabled: '#888888',
+          disabled: '#6e7c87',
         },
       },
       typography: {

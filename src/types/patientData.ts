@@ -6,6 +6,7 @@ export interface Patient {
 }
 
 export interface PacienteSession {
+  id: string;
   BPM: {
     [key: number]: number;
   };
