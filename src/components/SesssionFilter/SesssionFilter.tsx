@@ -26,6 +26,7 @@ import { getPacientePista } from '../../firestore/pacientes';
 import { PacienteSession } from '../../types/patientData';
 import ReactApexChart from 'react-apexcharts';
 import SessionComparison from '../SessionComparison/SessionComparison';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 interface SeriesItem {
   name: string;
@@ -47,6 +48,8 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   const [seriesArray, setSeriesArray] = useState<SeriesItem[]>([]);
   const [categories, setCategories] = useState<number[]>([]);
   const theme = useTheme();
+  const isXs = useMediaQuery(theme.breakpoints.only('xs'));
+  const isSm = useMediaQuery(theme.breakpoints.only('sm'));
 
   // Limpa as sessões quando muda o paciente
   useEffect(() => {
@@ -72,6 +75,15 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     });
   }, [patientId]);
 
+  // Função para reduzir a quantidade de pontos do array
+  function downsampleArray<T>(arr: T[], percent: number): T[] {
+    if (percent >= 1) return arr;
+    const newLength = Math.max(1, Math.floor(arr.length * percent));
+    if (newLength >= arr.length) return arr;
+    const step = arr.length / newLength;
+    return Array.from({ length: newLength }, (_, i) => arr[Math.floor(i * step)]);
+  }
+
   // Gera séries e categorias sempre que mudam as sessões selecionadas ou os dados
   useEffect(() => {
     // monta array de séries: para cada sessão, 3 séries (BPM, EMG, velocidade)
@@ -79,11 +91,11 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     selectedSessions.forEach((sessId, idx) => {
       const sess = sessionData[sessId];
       if (!sess) return;
-      console.log('Dados da sessão:', sess);
-
-      const bpmData = Object.values(sess.BPM || {});
-      const emgData = Object.values(sess.EMG || {});
-      const velData = Object.values(sess.velocidade || {});
+      // Downsample se for xs
+      const percent = isXs ? 0.3 : 1;
+      const bpmData = downsampleArray(Object.values(sess.BPM || {}), percent);
+      const emgData = downsampleArray(Object.values(sess.EMG || {}), percent);
+      const velData = downsampleArray(Object.values(sess.velocidade || {}), percent);
 
       if (bpmData.length || emgData.length || velData.length) {
         serieTemp.push(
@@ -94,13 +106,13 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
       }
     });
 
-    console.log('Series geradas:', serieTemp);
     setSeriesArray(serieTemp);
 
-    // categorias: 1 ponto a cada segundo (ou ajuste seu passo)
+    // categorias: intervalo dinâmico conforme a tela
     const maxLen = serieTemp.reduce((max, s) => Math.max(max, s.data.length), 0);
-    setCategories(Array.from({ length: maxLen }, (_, i) => i));
-  }, [selectedSessions, sessionData]);
+    const step = isXs ? 15 : isSm ? 10 : 5;
+    setCategories(Array.from({ length: maxLen }, (_, i) => i * step));
+  }, [selectedSessions, sessionData, isXs]);
 
   const commonOptions = {
     chart: { toolbar: { show: false } },
