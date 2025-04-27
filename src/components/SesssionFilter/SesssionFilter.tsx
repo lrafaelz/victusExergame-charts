@@ -15,6 +15,7 @@ import {
   SelectChangeEvent,
   ButtonGroup,
   IconButton,
+  Modal,
 } from '@mui/material';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -27,6 +28,7 @@ import { PacienteSession } from '../../types/patientData';
 import ReactApexChart from 'react-apexcharts';
 import SessionComparison from '../SessionComparison/SessionComparison';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 
 interface SeriesItem {
   name: string;
@@ -42,14 +44,20 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   const [startDate, setStartDate] = useState<moment.Moment | null>(null);
   const [endDate, setEndDate] = useState<moment.Moment | null>(null);
   const [dateError, setDateError] = useState('');
-  const [selectedSessions, setSelectedSessions] = useState<string[]>([]);
+  const [selectedSessions, setSelectedSessions] = useState<string[]>(() => {
+    // Recupera as sessões salvas do localStorage
+    const savedSessions = localStorage.getItem(`selectedSessions_${patientId}`);
+    return savedSessions ? JSON.parse(savedSessions) : [];
+  });
   const [availableSessions, setAvailableSessions] = useState<string[]>([]);
   const [sessionData, setSessionData] = useState<Record<string, PacienteSession>>({});
   const [seriesArray, setSeriesArray] = useState<SeriesItem[]>([]);
   const [categories, setCategories] = useState<number[]>([]);
+  const [fullScreenOpen, setFullScreenOpen] = useState(false);
   const theme = useTheme();
   const isXs = useMediaQuery(theme.breakpoints.only('xs'));
   const isSm = useMediaQuery(theme.breakpoints.only('sm'));
+  const isLandscape = useMediaQuery('(orientation: landscape)');
 
   // Limpa as sessões quando muda o paciente
   useEffect(() => {
@@ -74,6 +82,11 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
       setSessionData(dataMap);
     });
   }, [patientId]);
+
+  // Salva as sessões selecionadas no localStorage sempre que mudarem
+  useEffect(() => {
+    localStorage.setItem(`selectedSessions_${patientId}`, JSON.stringify(selectedSessions));
+  }, [selectedSessions, patientId]);
 
   // Função para reduzir a quantidade de pontos do array
   function downsampleArray<T>(arr: T[], percent: number): T[] {
@@ -114,6 +127,30 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     setCategories(Array.from({ length: maxLen }, (_, i) => i * step));
   }, [selectedSessions, sessionData, isXs]);
 
+  // Efeito para controlar o modo tela cheia quando a orientação muda
+  useEffect(() => {
+    const handleOrientationChange = () => {
+      console.log('Orientação da tela mudou:', window.orientation === 0 ? 'Portrait' : 'Landscape');
+      // Se houver séries sendo exibidas, abre em tela cheia
+      if (seriesArray.length > 0) {
+        console.log('Abrindo gráfico em tela cheia devido à mudança de orientação');
+        setFullScreenOpen(true);
+      }
+    };
+
+    window.addEventListener('orientationchange', handleOrientationChange);
+    return () => {
+      window.removeEventListener('orientationchange', handleOrientationChange);
+    };
+  }, [seriesArray.length]);
+
+  // Fecha o modal se sair do landscape
+  useEffect(() => {
+    if (!isLandscape && fullScreenOpen) {
+      setFullScreenOpen(false);
+    }
+  }, [isLandscape, fullScreenOpen]);
+
   const commonOptions = {
     chart: { toolbar: { show: false } },
     dataLabels: { enabled: false },
@@ -123,11 +160,12 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   };
 
   const renderCharts = () => {
-    console.log('Renderizando gráfico com series:', seriesArray);
     if (!seriesArray.length) return null;
-
     return (
-      <Box sx={{ mt: 4, width: '100%' }}>
+      <Box sx={{ mt: 4, width: '100%', position: 'relative' }}>
+        <Typography variant="body2" color="textDisabled" sx={{ mb: 1, textAlign: 'center' }}>
+          Para visualizar o gráfico em tela cheia, basta deitar o dispositivo (modo paisagem).
+        </Typography>
         <ReactApexChart
           options={{
             ...commonOptions,
@@ -137,6 +175,56 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
           type="area"
           height={350}
         />
+        <Modal
+          open={fullScreenOpen}
+          onClose={() => setFullScreenOpen(false)}
+          sx={{
+            '& .MuiModal-root': {
+              backgroundColor: 'background.paper',
+            },
+          }}
+        >
+          <Box
+            sx={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              bgcolor: 'background.paper',
+              zIndex: 1300,
+              p: 0,
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <Box sx={{ position: 'absolute', top: 0, right: 0, p: 1, zIndex: 1301 }}>
+              <IconButton
+                onClick={() => setFullScreenOpen(false)}
+                sx={{
+                  color: 'text.primary',
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  },
+                }}
+              >
+                <CloseRoundedIcon />
+              </IconButton>
+            </Box>
+            <Box sx={{ flex: 1, minHeight: 0, minWidth: 0, height: '100%', width: '100%' }}>
+              <ReactApexChart
+                options={{
+                  ...commonOptions,
+                  yaxis: [{ title: { text: 'BPM / EMG / Velocidade' } }],
+                }}
+                series={seriesArray}
+                type="area"
+                height={'100%'}
+                width={'100%'}
+              />
+            </Box>
+          </Box>
+        </Modal>
       </Box>
     );
   };
@@ -307,7 +395,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
 
       {selectedSessions.length ? (
         <SessionComparison
-          sessions={Object.values(selectedSessions.map(sessId => sessionData[sessId]))}
+          sessions={selectedSessions.map(sessId => sessionData[sessId]).filter(Boolean)}
         />
       ) : null}
     </Box>

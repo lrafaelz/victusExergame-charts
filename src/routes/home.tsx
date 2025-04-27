@@ -10,10 +10,15 @@ import { PageHeader } from '../components/PageHeader/PageHeader';
 import SesssionFilter from '../components/SesssionFilter/SesssionFilter';
 
 export const Home = () => {
-  const [drawerOpen, setDrawerOpen] = useState(true);
+  const theme = useTheme();
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [patients, setPatients] = useState<Patient[]>([]);
-  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [drawerOpen, setDrawerOpen] = useState(!isMobile);
+
+  useEffect(() => {
+    setDrawerOpen(!isMobile);
+  }, [isMobile]);
 
   const handleToggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
@@ -46,20 +51,20 @@ export const Home = () => {
 
   return (
     <Box
-      sx={{
-        pt: { xs: 0, md: HeaderSize },
-        height: '100%',
-      }}
+      sx={{ display: 'flex', flexDirection: 'row', height: '100%', pt: { xs: 0, md: HeaderSize } }}
     >
-      {/* Desktop Drawer */}
+      {/* Drawer sempre presente, mas pode ser temporário (mobile) ou permanente (desktop) */}
       <Drawer
-        variant="permanent"
+        variant={isMobile ? 'temporary' : 'permanent'}
         open={drawerOpen}
+        onClose={handleToggleDrawer}
         sx={{
-          display: { xs: 'none', sm: 'block' },
+          display: { xs: 'block', sm: 'block' },
           '& .MuiDrawer-paper': {
             width: drawerOpen ? OpenDrawerWidth : CloseDrawerWidth,
             transition: 'width 0.3s',
+            borderRight: '1px solid',
+            borderColor: 'divider',
           },
         }}
       >
@@ -75,7 +80,17 @@ export const Home = () => {
           }}
         >
           {patients.length > 0 && (
-            <IconButton onClick={handleToggleDrawer} sx={{ m: 1, width: 40, height: 40 }}>
+            <IconButton
+              onClick={handleToggleDrawer}
+              sx={{
+                m: 1,
+                width: 40,
+                height: 40,
+                '&:hover': {
+                  backgroundColor: 'action.hover',
+                },
+              }}
+            >
               {drawerOpen ? <ChevronLeftRoundedIcon /> : <MenuIcon />}
             </IconButton>
           )}
@@ -88,73 +103,54 @@ export const Home = () => {
         </Box>
       </Drawer>
 
-      {/* Mobile View */}
-      {useMediaQuery(theme.breakpoints.down('sm')) ? (
-        <Box sx={{ height: '100%', py: 2, px: 1 }}>
-          {selectedPatient ? (
-            <>
-              <PageHeader
-                title={selectedPatient.nome}
-                idade={selectedPatient.idade || 0}
-                detalhes={selectedPatient.detalhes || ''}
-                onBack={handleBackToList}
-              />
-              <SesssionFilter patientId={selectedPatient.id} />
-            </>
-          ) : (
-            <PatientList
-              patients={patients}
-              compact={false}
-              selectedPatient={selectedPatient}
-              onSelectPatient={onSelectPatient}
+      {/* Conteúdo principal, adaptando layout conforme o tamanho da tela */}
+      <Box
+        sx={{
+          flex: 1,
+          px: isMobile ? 1 : 5,
+          py: 2,
+          width: '100%',
+          height: '100%',
+          marginLeft: isMobile ? 0 : drawerOpen ? OpenDrawerWidth : CloseDrawerWidth,
+          transition: 'all 0.3s',
+        }}
+      >
+        {selectedPatient ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <PageHeader
+              title={selectedPatient.nome}
+              idade={selectedPatient.idade || 0}
+              detalhes={selectedPatient.detalhes || ''}
+              onBack={isMobile ? handleBackToList : undefined}
             />
-          )}
-        </Box>
-      ) : (
-        // Desktop Content
-        <Box
-          sx={{
-            px: 5,
-            py: 2,
-            width: {
-              xs: '100%',
-              sm: drawerOpen
-                ? `calc(100% - ${OpenDrawerWidth})`
-                : `calc(100% - ${CloseDrawerWidth})`,
-            },
-            height: '100%',
-            marginLeft: {
-              xs: 0,
-              sm: drawerOpen ? OpenDrawerWidth : CloseDrawerWidth,
-            },
-            transition: 'all 0.3s',
-          }}
-        >
-          {selectedPatient ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <PageHeader
-                title={selectedPatient.nome}
-                idade={selectedPatient.idade || 0}
-                detalhes={selectedPatient.detalhes || ''}
-              />
-              <SesssionFilter patientId={selectedPatient.id} />
-            </Box>
-          ) : (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-              }}
-            >
+            <SesssionFilter patientId={selectedPatient.id} />
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+            }}
+          >
+            {!isMobile && (
               <Typography variant="h6" color="textDisabled" sx={{ mb: 3, textAlign: 'center' }}>
                 Selecione um paciente para obter detalhes das sessões
               </Typography>
-            </Box>
-          )}
-        </Box>
-      )}
+            )}
+            {/* Lista de pacientes para mobile, ou para desktop se nenhum paciente selecionado */}
+            {isMobile && (
+              <PatientList
+                patients={patients}
+                compact={false}
+                selectedPatient={selectedPatient}
+                onSelectPatient={onSelectPatient}
+              />
+            )}
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 };
