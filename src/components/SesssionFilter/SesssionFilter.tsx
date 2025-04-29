@@ -69,7 +69,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   useEffect(() => {
     if (!patientId) return;
     getPacientePista(patientId).then(sessions => {
-      console.log('Sessions raw:', sessions);
       const ids = sessions.map(s => s.id);
       setAvailableSessions(ids);
       const dataMap: Record<string, PacienteSession> = {};
@@ -128,10 +127,8 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   // Efeito para controlar o modo tela cheia quando a orientação muda
   useEffect(() => {
     const handleOrientationChange = () => {
-      console.log('Orientação da tela mudou:', window.orientation === 0 ? 'Portrait' : 'Landscape');
       // Se houver séries sendo exibidas, abre em tela cheia
       if (seriesArray.length > 0) {
-        console.log('Abrindo gráfico em tela cheia devido à mudança de orientação');
         setFullScreenOpen(true);
       }
     };

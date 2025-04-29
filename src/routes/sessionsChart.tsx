@@ -36,7 +36,6 @@ export const SessionsChart: React.FC = () => {
       newSelectedSessions[itemIndex] = selectedOption;
       return newSelectedSessions;
     });
-    console.log('selectedSessions: ' + selectedSessions);
   };
 
   const handleSelectedPatientName = (selectedOption: string) => {
@@ -51,18 +50,15 @@ export const SessionsChart: React.FC = () => {
   const fetchPatientNames = async () => {
     const querySnapshot = await getDocs(patientCollection);
     const firebasePatientNames = querySnapshot.docs.map(doc => doc.id);
-    console.log('Nomes dos pacientes firebase: ' + firebasePatientNames);
     setPatientName(firebasePatientNames);
   };
 
   // Obter nomes das sessões
   const fetchSessionNames = async () => {
-    console.log('Nome do paciente selecionado: ' + selectedPatientName);
     const selectedPatientRef = doc(patientCollection, selectedPatientName);
     const sessionsCollection = collection(selectedPatientRef, 'Jogos', 'VictusExergame', 'Sessoes');
     const querySnapshot = await getDocs(sessionsCollection);
     const timestamps = querySnapshot.docs.map(doc => doc.id);
-    console.log(timestamps);
     setSessionTimestamps(timestamps);
   };
 
@@ -83,7 +79,6 @@ export const SessionsChart: React.FC = () => {
     );
     const docSnapshot = await getDoc(sessionRef);
     if (docSnapshot.exists()) {
-      console.log('Document data:', docSnapshot.data());
       const sessionData: SessionData = {
         BPM: docSnapshot.data().BPM,
         EMG: docSnapshot.data().EMG,
@@ -94,7 +89,7 @@ export const SessionsChart: React.FC = () => {
       };
       setSessions(prevSessions => [...prevSessions, sessionData]);
     } else {
-      console.log('No such document!');
+      console.error('No such document!');
     }
   }
 
@@ -103,13 +98,11 @@ export const SessionsChart: React.FC = () => {
   ): Promise<void> {
     for (const data of selectedSessionsArray) {
       if (data) await getData(data);
-      else
-        console.log('Nenhuma sessão selecionada no index: ' + selectedSessionsArray.indexOf(data));
+      else console.error('No session selected!');
     }
   }
 
   const fetchSessionData = async () => {
-    console.log('gerando grafico selected sessions', selectedSessions);
     iterateThroughSelectedSessionsArray(selectedSessions)
       .then(() => setSelectedSessions([]))
       .catch(error => console.error(error)); //Adicionar alerta
