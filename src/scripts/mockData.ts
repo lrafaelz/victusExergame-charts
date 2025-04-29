@@ -30,6 +30,7 @@ const mockPacientes: Patient[] = [
 const mockSessoes: Record<string, PacienteSession[]> = {
   '1': [
     {
+      id: 'session-1-1',
       BPM: {
         // Em repouso: 65-75 BPM
         0: 72, // 0s - início (repouso)
@@ -226,6 +227,7 @@ const mockSessoes: Record<string, PacienteSession[]> = {
       },
     },
     {
+      id: 'session-1-2',
       BPM: {
         // Sessão com intensidade um pouco maior
         0: 75, // repouso
@@ -423,6 +425,7 @@ const mockSessoes: Record<string, PacienteSession[]> = {
   ],
   '2': [
     {
+      id: 'session-2-1',
       BPM: {
         // Paciente com condicionamento intermediário
         0: 80, // repouso (ligeiramente elevado)
@@ -612,14 +615,13 @@ const mockSessoes: Record<string, PacienteSession[]> = {
         55: 9.2,
         56: 8.0,
         57: 6.8,
-        58: 5.5,
-        59: 4.2,
         60: 3.0, // final
       },
     },
   ],
   '3': [
     {
+      id: 'session-3-1',
       BPM: {
         // Paciente com condicionamento mais limitado (pessoa mais idosa)
         0: 78, // repouso
