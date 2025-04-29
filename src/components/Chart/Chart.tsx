@@ -1,4 +1,3 @@
-import React from 'react';
 import { LineChart } from '@mui/x-charts/LineChart';
 
 const data = [
