@@ -31,6 +31,7 @@ import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 interface SeriesItem {
   name: string;
   data: number[];
+  color?: string;
 }
 
 interface SesssionFilterProps {
@@ -104,6 +105,15 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     };
   }, []); // função memoizada que não depende de nenhuma prop ou state
 
+  // Cores definidas para cada tipo de dados - consistentes entre sessões
+  const dataColors = useMemo(() => {
+    return {
+      BPM: ['#f6964f', '#ff8f59', '#ffad85', '#ffbd95'], // Tons de laranja
+      EMG: ['#4fbbf6', '#59a2ff', '#85c0ff', '#95d3ff'], // Tons de azul
+      velocidade: ['#5ef64f', '#82ff59', '#a2ff85', '#c2ff95'], // Tons de verde
+    };
+  }, []);
+
   // Memoize common chart options to avoid recreating objects each render
   const commonOptions = useMemo(
     () => ({
@@ -124,8 +134,15 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     () => ({
       ...commonOptions,
       yaxis: [{ title: { text: 'BPM / EMG / Velocidade' } }],
+      colors: [...dataColors.BPM, ...dataColors.EMG, ...dataColors.velocidade], // Aplicar as cores consistentes
+      tooltip: {
+        theme: theme.palette.mode === 'dark' ? 'dark' : 'light',
+        y: {
+          formatter: (value: number) => value.toFixed(2),
+        },
+      },
     }),
-    [commonOptions],
+    [commonOptions, dataColors, theme.palette.mode],
   );
 
   // Limpa as sessões quando muda o paciente
@@ -212,9 +229,21 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
 
       if (bpmData.length || emgData.length || velData.length) {
         serieTemp.push(
-          { name: `BPM ${idx + 1}`, data: bpmData },
-          { name: `EMG ${idx + 1}`, data: emgData },
-          { name: `Velocidade ${idx + 1}`, data: velData },
+          {
+            name: `BPM ${idx + 1}`,
+            data: bpmData,
+            color: dataColors.BPM[idx % dataColors.BPM.length], // Cor consistente baseada no índice
+          },
+          {
+            name: `EMG ${idx + 1}`,
+            data: emgData,
+            color: dataColors.EMG[idx % dataColors.EMG.length], // Cor consistente baseada no índice
+          },
+          {
+            name: `Velocidade ${idx + 1}`,
+            data: velData,
+            color: dataColors.velocidade[idx % dataColors.velocidade.length], // Cor consistente baseada no índice
+          },
         );
       }
     });
@@ -225,7 +254,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     const maxLen = serieTemp.reduce((max, s) => Math.max(max, s.data.length), 0);
     const step = isXs ? 15 : isSm ? 10 : 5;
     setCategories(Array.from({ length: maxLen }, (_, i) => i * step));
-  }, [selectedSessions, sessionData, isXs, isSm]);
+  }, [selectedSessions, sessionData, isXs, isSm, dataColors]);
 
   // Efeito para controlar o modo tela cheia quando a orientação muda
   useEffect(() => {
