@@ -15,8 +15,14 @@ import {
   SelectChangeEvent,
   IconButton,
   Modal,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import moment from 'moment';
 import 'moment/locale/pt-br';
@@ -50,6 +56,9 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   const renderCount = useRef(0);
   const lastRenderTime = useRef(Date.now());
   const [renderStats, setRenderStats] = useState({ count: 0, timeSinceLastRender: 0 });
+
+  // Estado para controlar o diálogo de informação (mobile)
+  const [infoDialogOpen, setInfoDialogOpen] = useState(false);
 
   // Atualiza o contador de renderizações sem causar ciclos
   useEffect(() => {
@@ -477,41 +486,64 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
         {/* seleção de sessões vs datas */}
         <Box display="flex" justifyContent="center" alignItems="center">
           {comparisonType === 'sessions' ? (
-            <FormControl size="small" sx={{ minWidth: 230 }}>
-              <InputLabel id="session-selection-label">Sessões</InputLabel>
-              <Select
-                labelId="session-selection-label"
-                multiple
-                value={selectedSessions}
-                onChange={handleSessionChange}
-                input={<OutlinedInput label="Sessões" />}
-                renderValue={sel => {
-                  const arr = sel as string[];
-                  const shown = arr.slice(0, 2);
-                  return (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, maxWidth: 200 }}>
-                      {shown.map(v => (
-                        <Chip key={v} label={formatSessionLabel(v)} size="small" />
-                      ))}
-                      {arr.length > 2 && (
-                        <Chip
-                          label={`+${arr.length - 2}`}
-                          size="small"
-                          sx={{ bgcolor: 'transparent' }}
-                        />
-                      )}
-                    </Box>
-                  );
-                }}
-              >
-                {availableSessions.map(sess => (
-                  <MenuItem key={sess} value={sess}>
-                    <Checkbox checked={selectedSessions.includes(sess)} />
-                    <ListItemText primary={formatSessionLabel(sess)} />
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <>
+              <FormControl size="small" sx={{ minWidth: 230 }}>
+                <InputLabel id="session-selection-label">Sessões</InputLabel>
+                <Select
+                  labelId="session-selection-label"
+                  multiple
+                  value={selectedSessions}
+                  onChange={handleSessionChange}
+                  input={<OutlinedInput label="Sessões" />}
+                  renderValue={sel => {
+                    const arr = sel as string[];
+                    const shown = arr.slice(0, 2);
+                    return (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, maxWidth: 200 }}>
+                        {shown.map(v => (
+                          <Chip key={v} label={formatSessionLabel(v)} size="small" />
+                        ))}
+                        {arr.length > 2 && (
+                          <Chip
+                            label={`+${arr.length - 2}`}
+                            size="small"
+                            sx={{ bgcolor: 'transparent' }}
+                          />
+                        )}
+                      </Box>
+                    );
+                  }}
+                >
+                  {availableSessions.map(sess => (
+                    <MenuItem key={sess} value={sess}>
+                      <Checkbox checked={selectedSessions.includes(sess)} />
+                      <ListItemText primary={formatSessionLabel(sess)} />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* Botão de informação com tooltip para desktop e diálogo para mobile */}
+              {isXs || isSm ? (
+                <IconButton
+                  onClick={() => setInfoDialogOpen(true)}
+                  sx={{ ml: 0.5 }}
+                  color="primary"
+                  size="small"
+                >
+                  <InfoOutlinedIcon />
+                </IconButton>
+              ) : (
+                <Tooltip
+                  title="A ordem das sessões selecionadas define a numeração nos gráficos (ex: EMG 1, EMG 2, etc)"
+                  arrow
+                >
+                  <IconButton sx={{ ml: 0.5 }} color="primary" size="small">
+                    <InfoOutlinedIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </>
           ) : (
             <Box display="flex" flexDirection="column" gap={1} alignItems="center">
               <Box display="flex" gap={1} alignItems="center">
@@ -540,12 +572,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
                   A data inicial não pode ser posterior à data final
                 </Typography>
               )}
-              {selectedSessions.length > 0 && (
-                <Typography variant="caption" sx={{ mt: 1 }}>
-                  {selectedSessions.length}{' '}
-                  {selectedSessions.length === 1 ? 'sessão selecionada' : 'sessões selecionadas'}
-                </Typography>
-              )}
             </Box>
           )}
           {/* Botão de limpar gráfico colado ao select */}
@@ -553,6 +579,12 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
             <ClearRoundedIcon sx={{ color: 'white', bgcolor: 'primary.main', borderRadius: 1 }} />
           </IconButton>
         </Box>
+        {selectedSessions.length > 0 && (
+          <Typography variant="caption" sx={{ mt: 1 }}>
+            {selectedSessions.length}{' '}
+            {selectedSessions.length === 1 ? 'sessão selecionada' : 'sessões selecionadas'}
+          </Typography>
+        )}
       </Box>
 
       {/* gráfico e resumo */}
@@ -563,6 +595,22 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
           sessions={selectedSessions.map(sessId => sessionData[sessId]).filter(Boolean)}
         />
       ) : null}
+
+      {/* Diálogo de informação para dispositivos móveis */}
+      <Dialog open={infoDialogOpen} onClose={() => setInfoDialogOpen(false)}>
+        <DialogTitle>Informação</DialogTitle>
+        <DialogContent>
+          <Typography>
+            A ordem das sessões selecionadas define a numeração nos gráficos (ex: EMG 1, EMG 2,
+            etc).
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setInfoDialogOpen(false)} color="primary">
+            Fechar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
