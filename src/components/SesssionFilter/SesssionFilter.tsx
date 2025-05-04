@@ -174,9 +174,12 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     if (!seriesArray.length) return null;
     return (
       <Box sx={{ mt: 4, width: '100%', position: 'relative' }}>
-        <Typography variant="body2" color="textDisabled" sx={{ mb: 1, textAlign: 'center' }}>
-          Para visualizar o gráfico em tela cheia, basta deitar o dispositivo (modo paisagem).
-        </Typography>
+        {/* Mostrar mensagem apenas em dispositivos móveis */}
+        {(isXs || isSm) && (
+          <Typography variant="body2" color="textDisabled" sx={{ mb: 1, textAlign: 'center' }}>
+            Para visualizar o gráfico em tela cheia, basta deitar o dispositivo (modo paisagem).
+          </Typography>
+        )}
         <ReactApexChart options={chartOptions} series={seriesArray} type="area" height={350} />
         <Modal
           open={fullScreenOpen}
