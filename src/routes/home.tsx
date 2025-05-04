@@ -82,7 +82,14 @@ export const Home = () => {
 
   return (
     <Box
-      sx={{ display: 'flex', flexDirection: 'row', height: '100%', pt: { xs: 0, md: HeaderSize } }}
+      sx={{
+        display: 'flex',
+        flexDirection: 'row',
+        height: '100%',
+        width: '100%',
+        pt: { xs: 0, md: HeaderSize },
+        overflow: 'hidden', // Prevenir overflow do container principal
+      }}
     >
       {/* Drawer sempre presente, mas pode ser temporário (mobile) ou permanente (desktop) */}
       <Drawer
@@ -96,7 +103,11 @@ export const Home = () => {
             transition: 'width 0.3s',
             borderRight: '1px solid',
             borderColor: 'divider',
+            position: 'relative', // Alterado para relative para prevenir conflitos de layout
           },
+          width: isMobile ? 0 : drawerOpen ? OpenDrawerWidth : CloseDrawerWidth,
+          flexShrink: 0,
+          transition: 'width 0.3s',
         }}
       >
         <Box
@@ -136,14 +147,15 @@ export const Home = () => {
 
       {/* Conteúdo principal, adaptando layout conforme o tamanho da tela */}
       <Box
+        component="main"
         sx={{
           flex: 1,
           px: isMobile ? 1 : 5,
           py: 2,
           width: '100%',
           height: '100%',
-          marginLeft: isMobile ? 0 : drawerOpen ? OpenDrawerWidth : CloseDrawerWidth,
-          transition: 'all 0.3s',
+          overflow: 'auto', // Permitir rolagem apenas no conteúdo principal
+          transition: 'margin-left 0.3s',
         }}
       >
         {selectedPatient ? (

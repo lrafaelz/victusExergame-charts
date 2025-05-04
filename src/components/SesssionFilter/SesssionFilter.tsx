@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   FormControl,
@@ -56,6 +56,30 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   const isXs = useMediaQuery(theme.breakpoints.only('xs'));
   const isSm = useMediaQuery(theme.breakpoints.only('sm'));
   const isLandscape = useMediaQuery('(orientation: landscape)');
+
+  // Memoize common chart options to avoid recreating objects each render
+  const commonOptions = useMemo(
+    () => ({
+      chart: {
+        toolbar: { show: false },
+        animations: { enabled: false },
+        redrawOnParentResize: false,
+      },
+      dataLabels: { enabled: false },
+      stroke: { curve: 'smooth' as const },
+      xaxis: { categories, title: { text: 'Tempo (s)' } },
+      legend: { position: 'top' as const },
+    }),
+    [categories],
+  );
+
+  const chartOptions = useMemo(
+    () => ({
+      ...commonOptions,
+      yaxis: [{ title: { text: 'BPM / EMG / Velocidade' } }],
+    }),
+    [commonOptions],
+  );
 
   // Limpa as sessões quando muda o paciente
   useEffect(() => {
@@ -122,7 +146,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     const maxLen = serieTemp.reduce((max, s) => Math.max(max, s.data.length), 0);
     const step = isXs ? 15 : isSm ? 10 : 5;
     setCategories(Array.from({ length: maxLen }, (_, i) => i * step));
-  }, [selectedSessions, sessionData, isXs]);
+  }, [selectedSessions, sessionData, isXs, isSm]);
 
   // Efeito para controlar o modo tela cheia quando a orientação muda
   useEffect(() => {
@@ -146,14 +170,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     }
   }, [isLandscape, fullScreenOpen]);
 
-  const commonOptions = {
-    chart: { toolbar: { show: false } },
-    dataLabels: { enabled: false },
-    stroke: { curve: 'smooth' as const },
-    xaxis: { categories, title: { text: 'Tempo (s)' } },
-    legend: { position: 'top' as const },
-  };
-
   const renderCharts = () => {
     if (!seriesArray.length) return null;
     return (
@@ -161,15 +177,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
         <Typography variant="body2" color="textDisabled" sx={{ mb: 1, textAlign: 'center' }}>
           Para visualizar o gráfico em tela cheia, basta deitar o dispositivo (modo paisagem).
         </Typography>
-        <ReactApexChart
-          options={{
-            ...commonOptions,
-            yaxis: [{ title: { text: 'BPM / EMG / Velocidade' } }],
-          }}
-          series={seriesArray}
-          type="area"
-          height={350}
-        />
+        <ReactApexChart options={chartOptions} series={seriesArray} type="area" height={350} />
         <Modal
           open={fullScreenOpen}
           onClose={() => setFullScreenOpen(false)}
@@ -177,6 +185,12 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
             '& .MuiModal-root': {
               backgroundColor: 'background.paper',
             },
+            overflow: 'hidden', // Prevent overflow from the modal
+            '& ::-webkit-scrollbar': {
+              display: 'none',
+            },
+            scrollbarWidth: 'none', // Firefox
+            msOverflowStyle: 'none', // IE and Edge
           }}
         >
           <Box
@@ -184,13 +198,21 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
               position: 'fixed',
               top: 0,
               left: 0,
-              width: '100vw',
-              height: '100vh',
+              width: '100%',
+              height: '100%',
               bgcolor: 'background.paper',
               zIndex: 1300,
               p: 0,
               display: 'flex',
               flexDirection: 'column',
+              overflow: 'hidden',
+              maxWidth: '100%',
+              maxHeight: '100%',
+              '& ::-webkit-scrollbar': {
+                display: 'none',
+              },
+              scrollbarWidth: 'none', // Firefox
+              msOverflowStyle: 'none', // IE and Edge
             }}
           >
             <Box sx={{ position: 'absolute', top: 0, right: 0, p: 1, zIndex: 1301 }}>
@@ -206,16 +228,22 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
                 <CloseRoundedIcon />
               </IconButton>
             </Box>
-            <Box sx={{ flex: 1, minHeight: 0, minWidth: 0, height: '100%', width: '100%' }}>
+            <Box
+              sx={{
+                flex: 1,
+                minHeight: 0,
+                minWidth: 0,
+                height: '100%',
+                width: '100%',
+                overflow: 'hidden', // Prevent chart from causing overflow
+              }}
+            >
               <ReactApexChart
-                options={{
-                  ...commonOptions,
-                  yaxis: [{ title: { text: 'BPM / EMG / Velocidade' } }],
-                }}
+                options={chartOptions}
                 series={seriesArray}
                 type="area"
-                height={'100%'}
-                width={'100%'}
+                height="100%"
+                width="100%"
               />
             </Box>
           </Box>
