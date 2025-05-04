@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Box,
   FormControl,
@@ -37,7 +37,37 @@ interface SesssionFilterProps {
   patientId: string | undefined;
 }
 
+// Interface para armazenar informações da sessão junto com sua data
+interface SessionWithDate {
+  id: string;
+  date: moment.Moment;
+  session: PacienteSession;
+}
+
 const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
+  // Contador de renderizações
+  const renderCount = useRef(0);
+  const lastRenderTime = useRef(Date.now());
+  const [renderStats, setRenderStats] = useState({ count: 0, timeSinceLastRender: 0 });
+
+  // Atualiza o contador de renderizações sem causar ciclos
+  useEffect(() => {
+    renderCount.current += 1;
+    const now = Date.now();
+    const timeSinceLastRender = now - lastRenderTime.current;
+    lastRenderTime.current = now;
+
+    // Atualiza os stats apenas a cada segundo para evitar loops
+    const timeoutId = setTimeout(() => {
+      setRenderStats({
+        count: renderCount.current,
+        timeSinceLastRender,
+      });
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  });
+
   const [comparisonType, setComparisonType] = useState<'sessions' | 'date'>('sessions');
   const [startDate, setStartDate] = useState<moment.Moment | null>(null);
   const [endDate, setEndDate] = useState<moment.Moment | null>(null);
@@ -49,6 +79,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   });
   const [availableSessions, setAvailableSessions] = useState<string[]>([]);
   const [sessionData, setSessionData] = useState<Record<string, PacienteSession>>({});
+  const [sessionsWithDates, setSessionsWithDates] = useState<SessionWithDate[]>([]);
   const [seriesArray, setSeriesArray] = useState<SeriesItem[]>([]);
   const [categories, setCategories] = useState<number[]>([]);
   const [fullScreenOpen, setFullScreenOpen] = useState(false);
@@ -56,6 +87,22 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   const isXs = useMediaQuery(theme.breakpoints.only('xs'));
   const isSm = useMediaQuery(theme.breakpoints.only('sm'));
   const isLandscape = useMediaQuery('(orientation: landscape)');
+
+  // Função para extrair a data do ID da sessão
+  const extractDateFromSessionId = useMemo(() => {
+    return (sessionId: string): moment.Moment | null => {
+      // Padrão esperado: "Sessão MM-DD-YYYY h:mm:ss A" (formato americano)
+      // Modificado para aceitar formato com dígitos únicos sem zeros à esquerda
+      const datePattern = /(\d{1,2}-\d{1,2}-\d{4}\s+\d{1,2}:\d{1,2}:\d{1,2}\s*[AP]M)/i;
+      const match = sessionId.match(datePattern);
+
+      if (match && match[1]) {
+        // Parse a data no formato americano MM-DD-YYYY h:mm:ss A
+        return moment(match[1], 'M-D-YYYY h:mm:ss A');
+      }
+      return null;
+    };
+  }, []); // função memoizada que não depende de nenhuma prop ou state
 
   // Memoize common chart options to avoid recreating objects each render
   const commonOptions = useMemo(
@@ -95,14 +142,46 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     getPacientePista(patientId).then(sessions => {
       const ids = sessions.map(s => s.id);
       setAvailableSessions(ids);
+
+      // Processa as sessões para extrair as datas
+      const withDates: SessionWithDate[] = [];
       const dataMap: Record<string, PacienteSession> = {};
+
       sessions.forEach(s => {
-        // O dado já vem processado da API
         dataMap[s.id] = s as unknown as PacienteSession;
+
+        // Extrai a data do ID da sessão
+        const sessionDate = extractDateFromSessionId(s.id);
+        if (sessionDate) {
+          withDates.push({
+            id: s.id,
+            date: sessionDate,
+            session: s as unknown as PacienteSession,
+          });
+        }
       });
+
+      // Ordena as sessões por data (mais recentes primeiro)
+      withDates.sort((a, b) => b.date.valueOf() - a.date.valueOf());
+
+      setSessionsWithDates(withDates);
       setSessionData(dataMap);
     });
-  }, [patientId]);
+  }, [patientId, extractDateFromSessionId]);
+
+  // Efeito para filtrar sessões por data quando o tipo de filtro for 'date'
+  useEffect(() => {
+    if (comparisonType === 'date' && startDate && endDate) {
+      // Filtra sessões que estão entre as datas selecionadas
+      const filteredSessions = sessionsWithDates
+        .filter(s => {
+          return s.date.isSameOrAfter(startDate, 'day') && s.date.isSameOrBefore(endDate, 'day');
+        })
+        .map(s => s.id);
+
+      setSelectedSessions(filteredSessions);
+    }
+  }, [comparisonType, startDate, endDate, sessionsWithDates]);
 
   // Salva as sessões selecionadas no localStorage sempre que mudarem
   useEffect(() => {
@@ -255,7 +334,16 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     );
   };
 
-  // handlers de data e seleção (mantidos iguais ao seu original)
+  // Formatação para exibir data na lista de sessões
+  const formatSessionLabel = (sessionId: string): string => {
+    const date = extractDateFromSessionId(sessionId);
+    if (date) {
+      return `Sessão ${date.format('DD/MM/YYYY HH:mm')}`;
+    }
+    return `Sessão ${sessionId}`;
+  };
+
+  // handlers de data e seleção
   const handleStartDateChange = (newVal: moment.Moment | null) => {
     if (newVal?.isAfter(moment())) {
       return setDateError('A data inicial não pode ser posterior ao dia atual');
@@ -264,6 +352,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     setStartDate(newVal);
     setDateError('');
   };
+
   const handleEndDateChange = (newVal: moment.Moment | null) => {
     if (newVal?.isAfter(moment())) {
       return setDateError('A data final não pode ser posterior ao dia atual');
@@ -272,10 +361,25 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     setEndDate(newVal);
     setDateError('');
   };
+
   const handleSessionChange = (e: SelectChangeEvent<string[]>) =>
     setSelectedSessions(e.target.value as string[]);
-  const handleTypeViewChange = () =>
-    setComparisonType(ct => (ct === 'sessions' ? 'date' : 'sessions'));
+
+  const handleTypeViewChange = () => {
+    const newType = comparisonType === 'sessions' ? 'date' : 'sessions';
+    setComparisonType(newType);
+
+    // Limpa seleções ao mudar o modo
+    if (newType === 'sessions') {
+      setSelectedSessions([]);
+    } else {
+      // Define datas padrão: últimos 30 dias
+      const endDefault = moment();
+      const startDefault = moment().subtract(30, 'days');
+      setStartDate(startDefault);
+      setEndDate(endDefault);
+    }
+  };
 
   // Função para limpar tudo
   const handleClear = () => {
@@ -291,6 +395,28 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     <Box
       sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}
     >
+      {/* Indicador de renderizações (visível apenas em desenvolvimento) */}
+      {process.env.NODE_ENV === 'development' && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 4,
+            right: 4,
+            bgcolor: renderStats.timeSinceLastRender < 200 ? 'error.main' : 'success.main',
+            color: 'white',
+            px: 1,
+            py: 0.5,
+            borderRadius: 1,
+            fontSize: '12px',
+            opacity: 0.7,
+            pointerEvents: 'none',
+          }}
+        >
+          Renders: {renderStats.count}
+          {renderStats.timeSinceLastRender < 200 && ' ⚠️'}
+        </Box>
+      )}
+
       {/* filtro e seleção */}
       <Box
         sx={{
@@ -316,7 +442,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
             },
           }}
         >
-          Alternar filtro
+          {comparisonType === 'sessions' ? 'Filtrar por datas' : 'Selecionar sessões'}
         </Button>
 
         {/* seleção de sessões vs datas */}
@@ -336,7 +462,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
                   return (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, maxWidth: 200 }}>
                       {shown.map(v => (
-                        <Chip key={v} label={`Sessão ${v}`} size="small" />
+                        <Chip key={v} label={formatSessionLabel(v)} size="small" />
                       ))}
                       {arr.length > 2 && (
                         <Chip
@@ -352,7 +478,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
                 {availableSessions.map(sess => (
                   <MenuItem key={sess} value={sess}>
                     <Checkbox checked={selectedSessions.includes(sess)} />
-                    <ListItemText primary={`Sessão ${sess}`} />
+                    <ListItemText primary={formatSessionLabel(sess)} />
                   </MenuItem>
                 ))}
               </Select>
@@ -383,6 +509,12 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
               {startDate && endDate && startDate.isAfter(endDate) && (
                 <Typography color="error" variant="caption">
                   A data inicial não pode ser posterior à data final
+                </Typography>
+              )}
+              {selectedSessions.length > 0 && (
+                <Typography variant="caption" sx={{ mt: 1 }}>
+                  {selectedSessions.length}{' '}
+                  {selectedSessions.length === 1 ? 'sessão selecionada' : 'sessões selecionadas'}
                 </Typography>
               )}
             </Box>
