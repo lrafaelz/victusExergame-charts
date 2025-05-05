@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import DownloadIcon from '@mui/icons-material/Download';
 import {
   Box,
   FormControl,
@@ -33,6 +34,8 @@ import SessionComparison from '../SessionComparison/SessionComparison';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface SeriesItem {
   name: string;
@@ -97,6 +100,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   const isXs = useMediaQuery(theme.breakpoints.only('xs'));
   const isSm = useMediaQuery(theme.breakpoints.only('sm'));
   const isLandscape = useMediaQuery('(orientation: landscape)');
+  const chartRef = useRef<HTMLDivElement | null>(null);
 
   // Função para extrair a data do ID da sessão
   const extractDateFromSessionId = useMemo(() => {
@@ -275,6 +279,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     };
 
     window.addEventListener('orientationchange', handleOrientationChange);
+    console.log('Orientação alterada:', window.orientation);
     return () => {
       window.removeEventListener('orientationchange', handleOrientationChange);
     };
@@ -290,7 +295,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   const renderCharts = () => {
     if (!seriesArray.length) return null;
     return (
-      <Box sx={{ mt: 4, width: '100%', position: 'relative' }}>
+      <Box sx={{ mt: 4, width: '100%', position: 'relative' }} ref={chartRef}>
         {/* Mostrar mensagem apenas em dispositivos móveis */}
         {(isXs || isSm) && (
           <Typography variant="body2" color="textDisabled" sx={{ mb: 1, textAlign: 'center' }}>
@@ -426,6 +431,176 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     if (comparisonType === 'date') {
       setStartDate(null);
       setEndDate(null);
+    }
+  };
+
+  // Função para baixar relatório completo (gráfico + comparativo + parciais) em PDF
+  const handleDownloadCompletePDF = async () => {
+    if (!chartRef.current || seriesArray.length === 0) return;
+
+    try {
+      // Cria um PDF em formato A4 landscape
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      // Adiciona título principal
+      const title = `Relatório Completo VICTUS - ${new Date().toLocaleDateString('pt-BR')}`;
+      pdf.setFontSize(18);
+      pdf.text(title, 15, 15);
+
+      // 1. CAPTURA E ADICIONA O GRÁFICO
+      const graphCanvas = await html2canvas(chartRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: theme.palette.background.paper,
+      });
+      // Adiciona subtítulo para o gráfico
+      pdf.setFontSize(14);
+      pdf.text('Gráfico de Sessões', 15, 25);
+
+      // Adiciona informações das sessões
+      pdf.setFontSize(10);
+      let yPosition = 30;
+
+      // Lista as sessões incluídas no gráfico
+      pdf.text('Sessões analisadas:', 15, yPosition);
+      yPosition += 5;
+
+      selectedSessions.forEach((sessId, index) => {
+        const sessionLabel = formatSessionLabel(sessId);
+        pdf.text(`${index + 1}. ${sessionLabel}`, 15, yPosition);
+        yPosition += 5;
+      });
+
+      // Adiciona o gráfico convertido para imagem
+      const graphImgData = graphCanvas.toDataURL('image/png');
+      const graphWidth = 270; // largura do documento A4 em landscape (297mm) menos as margens
+      const graphHeight = (graphCanvas.height * graphWidth) / graphCanvas.width;
+
+      // Posiciona a imagem do gráfico
+      pdf.addImage(graphImgData, 'PNG', 15, yPosition + 5, graphWidth, graphHeight);
+
+      // Adiciona uma nova página para o comparativo e parciais
+      pdf.addPage();
+
+      // 2. CAPTURA E ADICIONA O COMPARATIVO DE SESSÕES
+      const comparisonElement = document.querySelector('.session-comparison-container');
+      if (comparisonElement) {
+        const comparisonCanvas = await html2canvas(comparisonElement as HTMLElement, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          onclone: (_, element) => {
+            // Expande todos os accordions no clone para capturar as tabelas de parciais
+            const accordions = element.querySelectorAll('.MuiAccordion-root');
+            accordions.forEach((accordion: Element) => {
+              accordion.classList.add('Mui-expanded');
+              const details = accordion.querySelector('.MuiAccordionDetails-root');
+              if (details) {
+                (details as HTMLElement).style.display = 'block';
+              }
+            });
+          },
+        });
+        // Adiciona subtítulo para o comparativo
+        pdf.setFontSize(14);
+        pdf.text('Comparativo de Sessões', 15, 15);
+        pdf.text('Comparativo de Sessões', 15, 15);
+
+        // Adiciona o comparativo convertido para imagem
+        const comparisonImgData = comparisonCanvas.toDataURL('image/png');
+        const comparisonWidth = 270;
+        const comparisonHeight =
+          (comparisonCanvas.height * comparisonWidth) / comparisonCanvas.width;
+
+        // Se a altura do comparativo for muito grande, reduzimos para caber na página
+        const maxHeight = 180; // altura máxima disponível na página A4 landscape
+        let finalHeight = comparisonHeight;
+        let finalY = 25;
+
+        if (comparisonHeight > maxHeight) {
+          finalHeight = maxHeight;
+          finalY = 20;
+        }
+
+        // Posiciona a imagem do comparativo
+        pdf.addImage(comparisonImgData, 'PNG', 15, finalY, comparisonWidth, finalHeight);
+
+        // Se o comparativo for muito grande, adiciona mais páginas para as parciais
+        if (comparisonHeight > maxHeight) {
+          pdf.addPage();
+        }
+      }
+
+      // 3. ADICIONA AS PARCIAIS DETALHADAS
+      for (let i = 0; i < selectedSessions.length; i++) {
+        const session = sessionData[selectedSessions[i]];
+        if (!session) continue;
+
+        // Se não for a primeira sessão, adicione uma nova página
+        if (i > 0) {
+          pdf.addPage();
+        }
+
+        // Título da sessão
+        pdf.setFontSize(14);
+        pdf.text(`Parciais da Sessão ${i + 1}: ${formatSessionLabel(selectedSessions[i])}`, 15, 15);
+
+        // Informações da sessão
+        pdf.setFontSize(10);
+
+        const intervals = Object.keys(session.velocidade || {}).length;
+        const duration = intervals * 5;
+        const minutes = Math.floor(duration / 60);
+        const seconds = duration % 60;
+        const durationFormatted = `${minutes}m ${seconds}s`;
+
+        pdf.text(`Distância: ${session.distancia} metros`, 15, 25);
+        pdf.text(`Pontuação: ${session.pontuacao}`, 15, 30);
+        pdf.text(`Duração: ${durationFormatted}`, 15, 35);
+        // Cabeçalho da tabela
+        pdf.setFontSize(10);
+        pdf.text('Tempo (s)', 15, 45);
+        pdf.text('BPM', 60, 45);
+        pdf.text('EMG', 100, 45);
+        pdf.text('Velocidade', 140, 45);
+        pdf.text('Velocidade', 140, 45);
+
+        let tableY = 50;
+        const rowHeight = 7;
+
+        // Adiciona os dados na tabela
+        Object.entries(session.velocidade || {}).forEach(([timeKey, velocity]) => {
+          // Se chegou ao fim da página, adiciona uma nova
+          if (tableY > 180) {
+            pdf.addPage();
+            tableY = 20;
+            pdf.text('Tempo (s)', 15, tableY);
+            pdf.text('BPM', 60, tableY);
+            pdf.text('EMG', 100, tableY);
+            pdf.text('Velocidade', 140, tableY);
+            tableY += rowHeight;
+          }
+          // Adiciona linha na tabela
+          pdf.text(timeKey, 15, tableY);
+          pdf.text(String(session.BPM?.[Number(timeKey)] || ''), 60, tableY);
+          pdf.text(String(session.EMG?.[Number(timeKey)] || ''), 100, tableY);
+          pdf.text(String(velocity || ''), 140, tableY);
+          pdf.text(String(velocity || ''), 140, tableY);
+
+          tableY += rowHeight;
+        });
+      }
+
+      // Salva o PDF completo
+      pdf.save('victus-relatorio-completo.pdf');
+    } catch (error) {
+      console.error('Erro ao gerar PDF completo:', error);
+      alert('Ocorreu um erro ao gerar o PDF completo. Por favor, tente novamente.');
     }
   };
 
@@ -587,8 +762,30 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
         )}
       </Box>
 
-      {/* gráfico e resumo */}
       {renderCharts()}
+
+      {/* Botão para baixar relatório completo */}
+      {seriesArray.length > 0 && (
+        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mt: 2, mb: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleDownloadCompletePDF}
+            startIcon={<DownloadIcon />}
+            sx={{
+              bgcolor: 'orangeVictus',
+              '&:hover': {
+                bgcolor: theme =>
+                  theme.palette.mode === 'light'
+                    ? 'rgba(246, 150, 79, 0.8)'
+                    : 'rgba(246, 150, 79, 0.6)',
+              },
+            }}
+          >
+            Baixar Relatório Completo (PDF)
+          </Button>
+        </Box>
+      )}
 
       {selectedSessions.length ? (
         <SessionComparison

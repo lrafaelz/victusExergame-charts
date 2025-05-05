@@ -30,7 +30,15 @@ export const PatientList = ({
   });
 
   return (
-    <Box sx={{ width: '100%', p: 2 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        p: 2,
+        justifyContent: 'flex-start',
+      }}
+    >
       {!compact && (
         <>
           <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>

@@ -7,7 +7,7 @@ import { Box } from '@mui/material';
 export const App: React.FC = () => {
   return (
     <Box sx={{ height: '100dvh' }}>
-      <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
         {useLocation().pathname !== '/login' && <Navbar />}
       </Box>
       <Box sx={{ height: '100%' }}>

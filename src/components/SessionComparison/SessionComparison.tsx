@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   Box,
   Grid,
@@ -24,6 +24,9 @@ interface SessionComparisonProps {
 }
 
 const SessionComparison: React.FC<SessionComparisonProps> = ({ sessions }) => {
+  // Referência para o componente de comparação para exportação PDF
+  const comparisonRef = useRef<HTMLDivElement>(null);
+
   if (!sessions.length) {
     return null;
   }
@@ -62,7 +65,7 @@ const SessionComparison: React.FC<SessionComparisonProps> = ({ sessions }) => {
   );
 
   return (
-    <Box sx={{ width: '100%', pb: 2 }}>
+    <Box sx={{ width: '100%', pb: 2 }} ref={comparisonRef} className="session-comparison-container">
       <Typography sx={{ typography: { xs: 'h6', sm: 'h5', md: 'h4' } }} align="center" gutterBottom>
         Comparativo primeira e última sessão
       </Typography>
@@ -108,6 +111,7 @@ const SessionComparison: React.FC<SessionComparisonProps> = ({ sessions }) => {
           return (
             <Grid size={{ md: 6, xs: 12 }} key={session.id}>
               <Accordion
+                id={`session-accordion-${index}`}
                 sx={{
                   boxShadow: 'none',
                   backgroundColor: theme => theme.palette.grey[200],

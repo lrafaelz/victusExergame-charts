@@ -24,7 +24,7 @@ export const Home = () => {
   const { user, loading } = useAuth();
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [patients, setPatients] = useState<Patient[]>([]);
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);
 
   useEffect(() => {
@@ -87,7 +87,7 @@ export const Home = () => {
         flexDirection: 'row',
         height: '100%',
         width: '100%',
-        pt: { xs: 0, md: HeaderSize },
+        pt: { xs: 0, sm: 0, md: HeaderSize },
         overflow: 'hidden', // Prevenir overflow do container principal
       }}
     >
@@ -118,7 +118,6 @@ export const Home = () => {
             width: '100%',
             overflowX: 'hidden',
             transition: 'width 0.3s',
-            pt: HeaderSize,
           }}
         >
           {patients.length > 0 && (
@@ -154,7 +153,7 @@ export const Home = () => {
           py: 2,
           width: '100%',
           height: '100%',
-          overflow: 'auto', // Permitir rolagem apenas no conteúdo principal
+          overflow: 'auto',
           transition: 'margin-left 0.3s',
         }}
       >
@@ -172,13 +171,21 @@ export const Home = () => {
           <Box
             sx={{
               display: 'flex',
-              alignItems: 'center',
               justifyContent: 'center',
               height: '100%',
             }}
           >
             {!isMobile && (
-              <Typography variant="h6" color="textDisabled" sx={{ mb: 3, textAlign: 'center' }}>
+              <Typography
+                variant="h6"
+                color="textDisabled"
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  mb: 3,
+                  textAlign: 'center',
+                }}
+              >
                 Selecione um paciente para obter detalhes das sessões
               </Typography>
             )}
