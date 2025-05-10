@@ -32,7 +32,6 @@ import { PacienteSession } from '../../types/patientData';
 import ReactApexChart from 'react-apexcharts';
 import SessionComparison from '../SessionComparison/SessionComparison';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -337,7 +336,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
         <ReactApexChart options={chartOptions} series={seriesArray} type="area" height={350} />
         <Modal
           open={fullScreenOpen}
-          onClose={() => setFullScreenOpen(false)}
           sx={{
             '& .MuiModal-root': {
               backgroundColor: 'background.paper',
@@ -355,9 +353,12 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
               position: 'fixed',
               top: 0,
               left: 0,
+              flex: 1,
               width: '100%',
               height: '100%',
               bgcolor: 'background.paper',
+              minHeight: 0,
+              minWidth: 0,
               zIndex: 1300,
               p: 0,
               display: 'flex',
@@ -372,37 +373,13 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
               msOverflowStyle: 'none', // IE and Edge
             }}
           >
-            <Box sx={{ position: 'absolute', top: 0, right: 0, p: 1, zIndex: 1301 }}>
-              <IconButton
-                onClick={() => setFullScreenOpen(false)}
-                sx={{
-                  color: 'text.primary',
-                  '&:hover': {
-                    backgroundColor: 'action.hover',
-                  },
-                }}
-              >
-                <CloseRoundedIcon />
-              </IconButton>
-            </Box>
-            <Box
-              sx={{
-                flex: 1,
-                minHeight: 0,
-                minWidth: 0,
-                height: '100%',
-                width: '100%',
-                overflow: 'hidden', // Prevent chart from causing overflow
-              }}
-            >
-              <ReactApexChart
-                options={chartOptions}
-                series={seriesArray}
-                type="area"
-                height="100%"
-                width="100%"
-              />
-            </Box>
+            <ReactApexChart
+              options={chartOptions}
+              series={seriesArray}
+              type="area"
+              height="100%"
+              width="100%"
+            />
           </Box>
         </Modal>
       </Box>

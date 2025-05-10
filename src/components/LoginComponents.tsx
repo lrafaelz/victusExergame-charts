@@ -1,19 +1,19 @@
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import React from 'react';
 import Lottie from 'lottie-react';
 import { sipinnerLoading } from '../assets';
 import Login from '../routes/login';
+import { useLoginGuard } from './LoginComponents.functions';
 
-export const LoginGuard = () => {
-  const { user } = useAuth();
+export const LoginGuard: React.FC = () => {
+  const { shouldRedirect } = useLoginGuard();
 
-  if (user) {
-    return <Navigate to="/" replace />;
+  if (shouldRedirect()) {
+    return null;
   }
   return <Login />;
 };
 
-export const LoadingSpinner = () => {
+export const LoadingSpinner: React.FC = () => {
   return (
     <Lottie
       animationData={sipinnerLoading}

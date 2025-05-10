@@ -2,8 +2,10 @@ import { Box, Grid, Typography, TextField, InputAdornment } from '@mui/material'
 import { Patient } from '../../types/patientData';
 import { PatientAvatar } from '../PatientAvatar/PatientAvatar';
 import PatientButton from '../PatientButton/PatientButton';
-import { useState } from 'react';
 import SearchIcon from '@mui/icons-material/Search';
+import { usePatientList } from './PatientList.functions';
+import { SearchField } from './SearchField';
+import { PatientGrid } from './PatientGrid';
 
 interface PatientListProps {
   patients: Patient[];
@@ -12,89 +14,26 @@ interface PatientListProps {
   compact?: boolean;
 }
 
-export const PatientList = ({
+export const PatientList: React.FC<PatientListProps> = ({
   patients,
   selectedPatient,
   onSelectPatient,
   compact = false,
-}: PatientListProps) => {
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const removeAccents = (str: string) => {
-    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  };
-  const filteredPatients = patients.filter(patient => {
-    const normalizedName = removeAccents(patient.nome?.toLowerCase() ?? '');
-    const normalizedSearch = removeAccents(searchTerm.toLowerCase());
-    return normalizedName.includes(normalizedSearch);
-  });
+}) => {
+  const { searchTerm, filteredPatients, handleSearchChange } = usePatientList(
+    patients,
+    onSelectPatient,
+  );
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        width: '100%',
-        p: 2,
-        justifyContent: 'flex-start',
-      }}
-    >
-      {!compact && (
-        <>
-          <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
-            Pacientes
-          </Typography>
-          <TextField
-            fullWidth
-            variant="outlined"
-            label="Pesquisar paciente"
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            sx={{
-              mb: 2,
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': {
-                  borderRadius: 4,
-                },
-              },
-            }}
-            slotProps={{
-              input: {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <SearchIcon color="action" />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-        </>
-      )}
-      <Grid container spacing={2} justifyContent="flex-start">
-        {!compact
-          ? filteredPatients.map((patient, index) => (
-              <Grid size={6} key={index}>
-                <PatientButton
-                  key={index}
-                  name={patient.nome?.split(' ')[0]}
-                  age={patient.idade}
-                  description={patient.detalhes}
-                  isSelected={selectedPatient?.id === patient.id}
-                  onClick={() => onSelectPatient(patient)}
-                />
-              </Grid>
-            ))
-          : patients.map((patient, index) => (
-              <Grid size={12} key={index}>
-                <PatientAvatar
-                  key={index}
-                  patient={patient}
-                  selectedPatient={selectedPatient}
-                  onSelectPatient={onSelectPatient}
-                />
-              </Grid>
-            ))}
-      </Grid>
+    <Box sx={{ width: '100%', p: 2 }}>
+      <SearchField searchTerm={searchTerm} onSearchChange={handleSearchChange} />
+      <PatientGrid
+        patients={filteredPatients}
+        selectedPatient={selectedPatient}
+        onSelectPatient={onSelectPatient}
+        compact={compact}
+      />
     </Box>
   );
 };
