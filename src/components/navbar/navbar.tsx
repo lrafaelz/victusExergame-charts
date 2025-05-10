@@ -1,4 +1,4 @@
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { Box, Container, AppBar, Typography, Link, useTheme, Button } from '@mui/material';
 
 import {
@@ -12,18 +12,11 @@ import {
   // qrImageStyle,
   navbarActions,
 } from './navbar.styles';
-import { useAuth } from '../../contexts/AuthContext';
+import { useNavbar } from './navbar.functions';
 
 export function Navbar() {
-  const { logout, user } = useAuth();
-  const navigate = useNavigate();
+  const { user, onLogout } = useNavbar();
   const theme = useTheme();
-
-  const onLogout = () => {
-    Promise.resolve(logout()).then(() => {
-      navigate('/login');
-    });
-  };
 
   return (
     <AppBar

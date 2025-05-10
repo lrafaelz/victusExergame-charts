@@ -269,28 +269,60 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     setCategories(Array.from({ length: maxLen }, (_, i) => i * step));
   }, [selectedSessions, sessionData, isXs, isSm, dataColors]);
 
-  // Efeito para controlar o modo tela cheia quando a orientação muda
+  // Efeito para detectar mudanças na orientação do dispositivo
   useEffect(() => {
-    const handleOrientationChange = () => {
-      // Se houver séries sendo exibidas, abre em tela cheia
-      if (seriesArray.length > 0) {
+    // Usando matchMedia que é o método moderno para detectar orientação
+    const mediaQuery = window.matchMedia('(orientation: landscape)');
+
+    const handleOrientationChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      console.log('🔍 Detector de orientação disparado:', {
+        matches: e.matches, // true = landscape, false = portrait
+        seriesCount: seriesArray.length,
+        isMediaQueryEvent: e instanceof MediaQueryListEvent,
+      });
+
+      // Se estiver em landscape e houver dados para mostrar, abra o modal
+      if (e.matches && seriesArray.length > 0) {
+        console.log('✅ Abrindo modal em orientação landscape com dados disponíveis');
         setFullScreenOpen(true);
+      }
+      // Se estiver em portrait, feche o modal
+      else if (!e.matches && fullScreenOpen) {
+        console.log('📱 Fechando modal pois saiu do modo paisagem');
+        setFullScreenOpen(false);
       }
     };
 
-    window.addEventListener('orientationchange', handleOrientationChange);
-    console.log('Orientação alterada:', window.orientation);
-    return () => {
-      window.removeEventListener('orientationchange', handleOrientationChange);
-    };
-  }, [seriesArray.length]);
+    // Importante: Verificar o estado inicial ao montar o componente
+    // Isso garante que o modal abra se o dispositivo já estiver em landscape
+    handleOrientationChange(mediaQuery);
+    console.log('📱 Estado inicial de orientação:', {
+      isLandscape: mediaQuery.matches,
+      windowOrientation: window.orientation !== undefined ? window.orientation : 'não disponível',
+      seriesCount: seriesArray.length,
+      fullScreenOpen,
+    });
 
-  // Fecha o modal se sair do landscape
+    // Adicionar o listener para detecção de mudança de orientação
+    mediaQuery.addEventListener('change', handleOrientationChange);
+
+    // Método alternativo para dispositivos iOS mais antigos que podem não suportar matchMedia adequadamente
+    window.addEventListener('resize', () => handleOrientationChange(mediaQuery));
+
+    // Limpar os listeners quando o componente for desmontado
+    return () => {
+      mediaQuery.removeEventListener('change', handleOrientationChange);
+      window.removeEventListener('resize', () => handleOrientationChange(mediaQuery));
+    };
+  }, [seriesArray.length, fullScreenOpen]);
+
+  // Efeito para forçar a abertura do modal quando houver dados disponíveis e o dispositivo estiver em landscape
   useEffect(() => {
-    if (!isLandscape && fullScreenOpen) {
-      setFullScreenOpen(false);
+    if (isLandscape && seriesArray.length > 0 && !fullScreenOpen) {
+      console.log('🌍 Forçando abertura do modal - Dispositivo em landscape com dados disponíveis');
+      setFullScreenOpen(true);
     }
-  }, [isLandscape, fullScreenOpen]);
+  }, [isLandscape, seriesArray.length, fullScreenOpen]);
 
   const renderCharts = () => {
     if (!seriesArray.length) return null;
