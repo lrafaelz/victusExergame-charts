@@ -1,13 +1,9 @@
 import React, { useRef } from 'react';
-import { Box, Typography, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Box } from '@mui/material';
 import { PacienteSession } from '../../types/patientData';
-import TrendingFlatRounded from '@mui/icons-material/TrendingFlatRounded';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useSessionComparison } from './SessionComparison.functions';
-import { SessionSummary } from './SessionSummary';
 import { SessionDetails } from './SessionDetails';
+import { SessionSummary } from './SessionSummary';
 
 interface SessionComparisonProps {
   sessions: PacienteSession[];

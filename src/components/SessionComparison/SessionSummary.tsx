@@ -15,7 +15,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({ first, last, spe
   const speedSummary = `${Math.abs(speedChange).toFixed(0)}%`;
 
   return (
-    <>
+    <Box sx={{ width: '100%', overflowX: 'auto', wordBreak: 'break-word', textAlign: 'center' }}>
       <Typography sx={{ typography: { xs: 'h6', sm: 'h5', md: 'h4' } }} align="center" gutterBottom>
         Comparativo primeira e última sessão
       </Typography>
@@ -25,7 +25,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({ first, last, spe
         justifyContent="space-between"
         sx={{ my: 3, textAlign: 'center' }}
       >
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <Typography variant="subtitle2">Distância percorrida</Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
             <Typography variant="h5" fontWeight="bold">{`${first.distancia}m`}</Typography>
@@ -33,7 +33,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({ first, last, spe
             <Typography variant="h5" fontWeight="bold">{`${last.distancia}m`}</Typography>
           </Box>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <Typography variant="subtitle2">Velocidade média</Typography>
           <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
             {speedChange >= 0 ? (
@@ -44,7 +44,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({ first, last, spe
             {speedSummary}
           </Typography>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <Typography variant="subtitle2">Pontuação</Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
             <Typography variant="h5" fontWeight="bold">
@@ -58,8 +58,8 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({ first, last, spe
         </Grid>
       </Grid>
       <Typography variant="body2" color="textDisabled" align="center" gutterBottom>
-        Valores capturados durante a sessão com o jogo, obtidos a cada 5 segundos.
+        Valores mensurados durante a sessão com o jogo, obtidos a cada 5 segundos.
       </Typography>
-    </>
+    </Box>
   );
 };

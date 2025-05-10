@@ -278,10 +278,11 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
         matches: e.matches, // true = landscape, false = portrait
         seriesCount: seriesArray.length,
         isMediaQueryEvent: e instanceof MediaQueryListEvent,
+        isMobile: isXs || isSm,
       });
 
-      // Se estiver em landscape e houver dados para mostrar, abra o modal
-      if (e.matches && seriesArray.length > 0) {
+      // Só abre o modal se for dispositivo móvel e estiver em landscape
+      if (e.matches && (isXs || isSm) && seriesArray.length > 0) {
         console.log('✅ Abrindo modal em orientação landscape com dados disponíveis');
         setFullScreenOpen(true);
       }
@@ -300,6 +301,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
       windowOrientation: window.orientation !== undefined ? window.orientation : 'não disponível',
       seriesCount: seriesArray.length,
       fullScreenOpen,
+      isMobile: isXs || isSm,
     });
 
     // Adicionar o listener para detecção de mudança de orientação
@@ -313,15 +315,15 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
       mediaQuery.removeEventListener('change', handleOrientationChange);
       window.removeEventListener('resize', () => handleOrientationChange(mediaQuery));
     };
-  }, [seriesArray.length, fullScreenOpen]);
+  }, [seriesArray.length, fullScreenOpen, isXs, isSm]);
 
   // Efeito para forçar a abertura do modal quando houver dados disponíveis e o dispositivo estiver em landscape
   useEffect(() => {
-    if (isLandscape && seriesArray.length > 0 && !fullScreenOpen) {
+    if (isLandscape && (isXs || isSm) && seriesArray.length > 0 && !fullScreenOpen) {
       console.log('🌍 Forçando abertura do modal - Dispositivo em landscape com dados disponíveis');
       setFullScreenOpen(true);
     }
-  }, [isLandscape, seriesArray.length, fullScreenOpen]);
+  }, [isLandscape, seriesArray.length, fullScreenOpen, isXs, isSm]);
 
   const renderCharts = () => {
     if (!seriesArray.length) return null;
