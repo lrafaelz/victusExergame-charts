@@ -158,7 +158,7 @@ export const Home = () => {
         }}
       >
         {selectedPatient ? (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box sx={{ display: 'flex', height: '100%', flexDirection: 'column', gap: 1 }}>
             <PageHeader
               title={selectedPatient.nome}
               idade={selectedPatient.idade || 0}

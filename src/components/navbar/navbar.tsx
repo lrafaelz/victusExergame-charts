@@ -13,6 +13,7 @@ import {
   navbarActions,
 } from './navbar.styles';
 import { useNavbar } from './navbar.functions';
+import { InstallButton } from '../InstallButton/InstallButton';
 
 export function Navbar() {
   const { user, onLogout } = useNavbar();
@@ -35,6 +36,7 @@ export function Navbar() {
         </Box>
 
         <Box sx={navbarActions}>
+          <InstallButton variant="button" />
           <Link
             sx={textStyle}
             href="https://forms.gle/Z3hnWQDT6F3o1Vi76"
