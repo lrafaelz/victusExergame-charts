@@ -859,7 +859,6 @@ export async function addMockPacientes() {
       const { id, ...pacienteData } = paciente;
 
       await setDoc(pacienteRef, pacienteData);
-      console.log(`Paciente ${pacienteId} adicionado com sucesso`);
 
       // Adicionar as sessões (Pista1) para este paciente, se existirem
       if (mockSessoes[pacienteId]) {
@@ -889,15 +888,11 @@ export async function addMockPacientes() {
             dataFormatada,
           );
           await setDoc(sessaoRef, sessao);
-          console.log(`Sessão ${dataFormatada} adicionada para o paciente ${pacienteId}`);
         }
       }
     }
-
-    console.log('Todos os pacientes e sessões foram adicionados com sucesso');
     return true;
   } catch (error) {
-    console.error('Erro ao adicionar pacientes mocados:', error);
     return false;
   }
 }
@@ -916,13 +911,9 @@ export async function addMockFisioterapeutas() {
         fisio.email,
       );
       await setDoc(fisioRef, fisio);
-      console.log(`Fisioterapeuta ${fisio.email} adicionado com sucesso`);
     }
-
-    console.log('Todos os fisioterapeutas foram adicionados com sucesso');
     return true;
   } catch (error) {
-    console.error('Erro ao adicionar fisioterapeutas mocados:', error);
     return false;
   }
 }
@@ -933,7 +924,6 @@ export async function addMockFisioterapeutas() {
 export async function addAllMockData() {
   await addMockPacientes();
   await addMockFisioterapeutas();
-  console.log('Todos os dados mocados foram adicionados com sucesso!');
 }
 
 // Você pode exportar esta função como padrão para facilitar a importação

@@ -262,65 +262,36 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
 
     setSeriesArray(serieTemp);
 
-    // categorias: intervalo dinâmico conforme a tela
     const maxLen = serieTemp.reduce((max, s) => Math.max(max, s.data.length), 0);
     const step = isXs ? 15 : isSm ? 10 : 5;
     setCategories(Array.from({ length: maxLen }, (_, i) => i * step));
   }, [selectedSessions, sessionData, isXs, isSm, dataColors]);
 
-  // Efeito para detectar mudanças na orientação do dispositivo
   useEffect(() => {
-    // Usando matchMedia que é o método moderno para detectar orientação
     const mediaQuery = window.matchMedia('(orientation: landscape)');
 
     const handleOrientationChange = (e: MediaQueryListEvent | MediaQueryList) => {
-      console.log('🔍 Detector de orientação disparado:', {
-        matches: e.matches, // true = landscape, false = portrait
-        seriesCount: seriesArray.length,
-        isMediaQueryEvent: e instanceof MediaQueryListEvent,
-        isMobile: isXs || isSm,
-      });
-
-      // Só abre o modal se for dispositivo móvel e estiver em landscape
       if (e.matches && (isXs || isSm) && seriesArray.length > 0) {
-        console.log('✅ Abrindo modal em orientação landscape com dados disponíveis');
         setFullScreenOpen(true);
-      }
-      // Se estiver em portrait, feche o modal
-      else if (!e.matches && fullScreenOpen) {
-        console.log('📱 Fechando modal pois saiu do modo paisagem');
+      } else if (!e.matches && fullScreenOpen) {
         setFullScreenOpen(false);
       }
     };
 
-    // Importante: Verificar o estado inicial ao montar o componente
-    // Isso garante que o modal abra se o dispositivo já estiver em landscape
     handleOrientationChange(mediaQuery);
-    console.log('📱 Estado inicial de orientação:', {
-      isLandscape: mediaQuery.matches,
-      windowOrientation: window.orientation !== undefined ? window.orientation : 'não disponível',
-      seriesCount: seriesArray.length,
-      fullScreenOpen,
-      isMobile: isXs || isSm,
-    });
 
-    // Adicionar o listener para detecção de mudança de orientação
     mediaQuery.addEventListener('change', handleOrientationChange);
 
-    // Método alternativo para dispositivos iOS mais antigos que podem não suportar matchMedia adequadamente
     window.addEventListener('resize', () => handleOrientationChange(mediaQuery));
 
-    // Limpar os listeners quando o componente for desmontado
     return () => {
       mediaQuery.removeEventListener('change', handleOrientationChange);
       window.removeEventListener('resize', () => handleOrientationChange(mediaQuery));
     };
   }, [seriesArray.length, fullScreenOpen, isXs, isSm]);
 
-  // Efeito para forçar a abertura do modal quando houver dados disponíveis e o dispositivo estiver em landscape
   useEffect(() => {
     if (isLandscape && (isXs || isSm) && seriesArray.length > 0 && !fullScreenOpen) {
-      console.log('🌍 Forçando abertura do modal - Dispositivo em landscape com dados disponíveis');
       setFullScreenOpen(true);
     }
   }, [isLandscape, seriesArray.length, fullScreenOpen, isXs, isSm]);
@@ -329,7 +300,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     if (!seriesArray.length) return null;
     return (
       <Box sx={{ mt: 4, width: '100%' }} ref={chartRef}>
-        {/* Mostrar mensagem apenas em dispositivos móveis */}
         {(isXs || isSm) && (
           <Typography variant="body2" color="textDisabled" sx={{ mb: 1, textAlign: 'center' }}>
             Para visualizar o gráfico em tela cheia, basta deitar o dispositivo (modo paisagem).
@@ -388,7 +358,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     );
   };
 
-  // Formatação para exibir data na lista de sessões
   const formatSessionLabel = (sessionId: string): string => {
     const date = extractDateFromSessionId(sessionId);
     if (date) {
@@ -397,7 +366,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     return `Sessão ${sessionId}`;
   };
 
-  // handlers de data e seleção
   const handleStartDateChange = (newVal: moment.Moment | null) => {
     if (newVal?.isAfter(moment())) {
       return setDateError('A data inicial não pode ser posterior ao dia atual');
@@ -423,11 +391,9 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     const newType = comparisonType === 'sessions' ? 'date' : 'sessions';
     setComparisonType(newType);
 
-    // Limpa seleções ao mudar o modo
     if (newType === 'sessions') {
       setSelectedSessions([]);
     } else {
-      // Define datas padrão: últimos 30 dias
       const endDefault = moment();
       const startDefault = moment().subtract(30, 'days');
       setStartDate(startDefault);
@@ -435,7 +401,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     }
   };
 
-  // Função para limpar tudo
   const handleClear = () => {
     setSelectedSessions([]);
     setSeriesArray([]);
@@ -445,39 +410,32 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     }
   };
 
-  // Função para baixar relatório completo (gráfico + comparativo + parciais) em PDF
   const handleDownloadCompletePDF = async () => {
     if (!chartRef.current || seriesArray.length === 0) return;
 
     try {
-      // Cria um PDF em formato A4 landscape
       const pdf = new jsPDF({
         orientation: 'landscape',
         unit: 'mm',
         format: 'a4',
       });
 
-      // Adiciona título principal
       const title = `Relatório Completo VICTUS - ${new Date().toLocaleDateString('pt-BR')}`;
       pdf.setFontSize(18);
       pdf.text(title, 15, 15);
 
-      // 1. CAPTURA E ADICIONA O GRÁFICO
       const graphCanvas = await html2canvas(chartRef.current, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: theme.palette.background.paper,
       });
-      // Adiciona subtítulo para o gráfico
       pdf.setFontSize(14);
       pdf.text('Gráfico de Sessões', 15, 25);
 
-      // Adiciona informações das sessões
       pdf.setFontSize(10);
       let yPosition = 30;
 
-      // Lista as sessões incluídas no gráfico
       pdf.text('Sessões analisadas:', 15, yPosition);
       yPosition += 5;
 
@@ -487,18 +445,14 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
         yPosition += 5;
       });
 
-      // Adiciona o gráfico convertido para imagem
       const graphImgData = graphCanvas.toDataURL('image/png');
       const graphWidth = 270; // largura do documento A4 em landscape (297mm) menos as margens
       const graphHeight = (graphCanvas.height * graphWidth) / graphCanvas.width;
 
-      // Posiciona a imagem do gráfico
       pdf.addImage(graphImgData, 'PNG', 15, yPosition + 5, graphWidth, graphHeight);
 
-      // Adiciona uma nova página para o comparativo e parciais
       pdf.addPage();
 
-      // 2. CAPTURA E ADICIONA O COMPARATIVO DE SESSÕES
       const comparisonElement = document.querySelector('.session-comparison-container');
       if (comparisonElement) {
         const comparisonCanvas = await html2canvas(comparisonElement as HTMLElement, {
@@ -506,7 +460,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
           useCORS: true,
           logging: false,
           onclone: (_, element) => {
-            // Expande todos os accordions no clone para capturar as tabelas de parciais
             const accordions = element.querySelectorAll('.MuiAccordion-root');
             accordions.forEach((accordion: Element) => {
               accordion.classList.add('Mui-expanded');
@@ -517,18 +470,15 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
             });
           },
         });
-        // Adiciona subtítulo para o comparativo
         pdf.setFontSize(14);
         pdf.text('Comparativo de Sessões', 15, 15);
         pdf.text('Comparativo de Sessões', 15, 15);
 
-        // Adiciona o comparativo convertido para imagem
         const comparisonImgData = comparisonCanvas.toDataURL('image/png');
         const comparisonWidth = 270;
         const comparisonHeight =
           (comparisonCanvas.height * comparisonWidth) / comparisonCanvas.width;
 
-        // Se a altura do comparativo for muito grande, reduzimos para caber na página
         const maxHeight = 180; // altura máxima disponível na página A4 landscape
         let finalHeight = comparisonHeight;
         let finalY = 25;
@@ -538,30 +488,24 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
           finalY = 20;
         }
 
-        // Posiciona a imagem do comparativo
         pdf.addImage(comparisonImgData, 'PNG', 15, finalY, comparisonWidth, finalHeight);
 
-        // Se o comparativo for muito grande, adiciona mais páginas para as parciais
         if (comparisonHeight > maxHeight) {
           pdf.addPage();
         }
       }
 
-      // 3. ADICIONA AS PARCIAIS DETALHADAS
       for (let i = 0; i < selectedSessions.length; i++) {
         const session = sessionData[selectedSessions[i]];
         if (!session) continue;
 
-        // Se não for a primeira sessão, adicione uma nova página
         if (i > 0) {
           pdf.addPage();
         }
 
-        // Título da sessão
         pdf.setFontSize(14);
         pdf.text(`Parciais da Sessão ${i + 1}: ${formatSessionLabel(selectedSessions[i])}`, 15, 15);
 
-        // Informações da sessão
         pdf.setFontSize(10);
 
         const intervals = Object.keys(session.velocidade || {}).length;
@@ -573,7 +517,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
         pdf.text(`Distância: ${session.distancia} metros`, 15, 25);
         pdf.text(`Pontuação: ${session.pontuacao}`, 15, 30);
         pdf.text(`Duração: ${durationFormatted}`, 15, 35);
-        // Cabeçalho da tabela
         pdf.setFontSize(10);
         pdf.text('Tempo (s)', 15, 45);
         pdf.text('BPM', 60, 45);
@@ -584,9 +527,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
         let tableY = 50;
         const rowHeight = 7;
 
-        // Adiciona os dados na tabela
         Object.entries(session.velocidade || {}).forEach(([timeKey, velocity]) => {
-          // Se chegou ao fim da página, adiciona uma nova
           if (tableY > 180) {
             pdf.addPage();
             tableY = 20;
@@ -596,7 +537,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
             pdf.text('Velocidade', 140, tableY);
             tableY += rowHeight;
           }
-          // Adiciona linha na tabela
           pdf.text(timeKey, 15, tableY);
           pdf.text(String(session.BPM?.[Number(timeKey)] || ''), 60, tableY);
           pdf.text(String(session.EMG?.[Number(timeKey)] || ''), 100, tableY);
@@ -607,7 +547,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
         });
       }
 
-      // Salva o PDF completo
       pdf.save('victus-relatorio-completo.pdf');
     } catch (error) {
       console.error('Erro ao gerar PDF completo:', error);
@@ -619,7 +558,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     <Box
       sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}
     >
-      {/* Indicador de renderizações (visível apenas em desenvolvimento) */}
       {process.env.NODE_ENV === 'development' && (
         <Box
           sx={{
@@ -641,7 +579,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
         </Box>
       )}
 
-      {/* filtro e seleção */}
       <Box
         sx={{
           width: '100%',
@@ -669,7 +606,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
           {comparisonType === 'sessions' ? 'Filtrar por datas' : 'Selecionar sessões'}
         </Button>
 
-        {/* seleção de sessões vs datas */}
         <Box display="flex" justifyContent="center" alignItems="center">
           {comparisonType === 'sessions' ? (
             <>
@@ -709,7 +645,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
                 </Select>
               </FormControl>
 
-              {/* Botão de informação com tooltip para desktop e diálogo para mobile */}
               {isXs || isSm ? (
                 <IconButton
                   onClick={() => setInfoDialogOpen(true)}
@@ -760,7 +695,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
               )}
             </Box>
           )}
-          {/* Botão de limpar gráfico colado ao select */}
           <IconButton onClick={handleClear}>
             <ClearRoundedIcon sx={{ color: 'white', bgcolor: 'primary.main', borderRadius: 1 }} />
           </IconButton>
@@ -775,7 +709,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
 
       {renderCharts()}
 
-      {/* Botão para baixar relatório completo */}
       {seriesArray.length > 0 && (
         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mt: 2, mb: 2 }}>
           <Button
@@ -804,7 +737,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
         />
       ) : null}
 
-      {/* Diálogo de informação para dispositivos móveis */}
       <Dialog open={infoDialogOpen} onClose={() => setInfoDialogOpen(false)}>
         <DialogTitle>Informação</DialogTitle>
         <DialogContent>

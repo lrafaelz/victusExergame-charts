@@ -28,8 +28,6 @@ export const ThemeContextProvider = ({ children }: { children: React.ReactNode }
     dark: '#d66817',
   });
 
-  // console.log('themeColors', themeColors)
-
   // Recalcula o tema sempre que as cores mudam
   const theme = useMemo(() => generateTheme(themeColors), [themeColors]);
 
