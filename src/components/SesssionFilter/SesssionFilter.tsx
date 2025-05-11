@@ -27,7 +27,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import moment from 'moment';
 import 'moment/locale/pt-br';
-import { getPacientePista } from '../../firestore/pacientes';
+import { getPacientePista, getPaciente } from '../../firestore/pacientes';
 import { PacienteSession } from '../../types/patientData';
 import ReactApexChart from 'react-apexcharts';
 import SessionComparison from '../SessionComparison/SessionComparison';
@@ -35,6 +35,8 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import 'svg2pdf.js';
+import { logo } from '../../assets';
 
 interface SeriesItem {
   name: string;
@@ -54,31 +56,8 @@ interface SessionWithDate {
 }
 
 const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
-  // Contador de renderizações
-  const renderCount = useRef(0);
-  const lastRenderTime = useRef(Date.now());
-  const [renderStats, setRenderStats] = useState({ count: 0, timeSinceLastRender: 0 });
-
   // Estado para controlar o diálogo de informação (mobile)
   const [infoDialogOpen, setInfoDialogOpen] = useState(false);
-
-  // Atualiza o contador de renderizações sem causar ciclos
-  useEffect(() => {
-    renderCount.current += 1;
-    const now = Date.now();
-    const timeSinceLastRender = now - lastRenderTime.current;
-    lastRenderTime.current = now;
-
-    // Atualiza os stats apenas a cada segundo para evitar loops
-    const timeoutId = setTimeout(() => {
-      setRenderStats({
-        count: renderCount.current,
-        timeSinceLastRender,
-      });
-    }, 1000);
-
-    return () => clearTimeout(timeoutId);
-  });
 
   const [comparisonType, setComparisonType] = useState<'sessions' | 'date'>('sessions');
   const [startDate, setStartDate] = useState<moment.Moment | null>(null);
@@ -100,6 +79,10 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   const isSm = useMediaQuery(theme.breakpoints.only('sm'));
   const isLandscape = useMediaQuery('(orientation: landscape)');
   const chartRef = useRef<HTMLDivElement | null>(null);
+  const [pdfChartReady, setPdfChartReady] = useState(false);
+  const [pdfComparisonReady, setPdfComparisonReady] = useState(false);
+  const pdfChartRef = useRef<HTMLDivElement | null>(null);
+  const pdfComparisonRef = useRef<HTMLDivElement | null>(null);
 
   // Função para extrair a data do ID da sessão
   const extractDateFromSessionId = useMemo(() => {
@@ -411,7 +394,10 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   };
 
   const handleDownloadCompletePDF = async () => {
-    if (!chartRef.current || seriesArray.length === 0) return;
+    if (seriesArray.length === 0) return;
+    setPdfChartReady(true);
+    setPdfComparisonReady(true);
+    await new Promise(resolve => setTimeout(resolve, 200)); // Aguarda renderização dos componentes virtuais
 
     try {
       const pdf = new jsPDF({
@@ -420,93 +406,111 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
         format: 'a4',
       });
 
-      const title = `Relatório Completo VICTUS - ${new Date().toLocaleDateString('pt-BR')}`;
-      pdf.setFontSize(18);
-      pdf.text(title, 15, 15);
+      // Get patient information
+      const patientInfo = await getPaciente(patientId || '');
+      const patientName = patientInfo?.nome || 'Paciente';
+      const patientAge = patientInfo?.idade || 'N/A';
+      const patientDetails = patientInfo?.detalhes || 'Sem detalhes adicionais';
 
-      const graphCanvas = await html2canvas(chartRef.current, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: theme.palette.background.paper,
+      // Title and patient info
+      pdf.setFontSize(20);
+      pdf.setTextColor(246, 150, 79);
+      pdf.text('Relatório Victus Exergame', 15, 15);
+
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`Paciente: ${patientName}`, 15, 25);
+      pdf.text(`Idade: ${patientAge} anos`, 15, 30);
+      pdf.text(`Detalhes: ${patientDetails}`, 15, 35);
+
+      // Logo à direita
+      const logoWidth = 60;
+      const img = new window.Image();
+      img.src = logo;
+      await new Promise(resolve => {
+        img.onload = resolve;
       });
+      const aspect = img.width / img.height;
+      const logoHeight = logoWidth / aspect;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const logoX = pageWidth - logoWidth - 15;
+      const logoY = 15;
+      pdf.addImage(logo, 'PNG', logoX, logoY, logoWidth, logoHeight);
+
+      // Informações das sessões
+      let infoY = 50;
       pdf.setFontSize(14);
-      pdf.text('Gráfico de Sessões', 15, 25);
+      pdf.setTextColor(246, 150, 79);
+      pdf.text('Informações das Sessões', 15, infoY);
 
       pdf.setFontSize(10);
-      let yPosition = 30;
+      pdf.setTextColor(0, 0, 0);
+      infoY += 5;
 
-      pdf.text('Sessões analisadas:', 15, yPosition);
-      yPosition += 5;
-
-      selectedSessions.forEach((sessId, index) => {
-        const sessionLabel = formatSessionLabel(sessId);
-        pdf.text(`${index + 1}. ${sessionLabel}`, 15, yPosition);
-        yPosition += 5;
-      });
-
-      const graphImgData = graphCanvas.toDataURL('image/png');
-      const graphWidth = 270; // largura do documento A4 em landscape (297mm) menos as margens
-      const graphHeight = (graphCanvas.height * graphWidth) / graphCanvas.width;
-
-      pdf.addImage(graphImgData, 'PNG', 15, yPosition + 5, graphWidth, graphHeight);
-
-      pdf.addPage();
-
-      const comparisonElement = document.querySelector('.session-comparison-container');
-      if (comparisonElement) {
-        const comparisonCanvas = await html2canvas(comparisonElement as HTMLElement, {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          onclone: (_, element) => {
-            const accordions = element.querySelectorAll('.MuiAccordion-root');
-            accordions.forEach((accordion: Element) => {
-              accordion.classList.add('Mui-expanded');
-              const details = accordion.querySelector('.MuiAccordionDetails-root');
-              if (details) {
-                (details as HTMLElement).style.display = 'block';
-              }
-            });
-          },
+      if (comparisonType === 'date') {
+        pdf.text(
+          `Período: ${startDate?.format('DD/MM/YYYY')} até ${endDate?.format('DD/MM/YYYY')}`,
+          15,
+          infoY,
+        );
+        infoY += 5;
+        pdf.text(`Total de sessões no período: ${selectedSessions.length}`, 15, infoY);
+      } else {
+        pdf.text('Sessões selecionadas:', 15, infoY);
+        infoY += 5;
+        selectedSessions.forEach((sessId, index) => {
+          const sessionLabel = formatSessionLabel(sessId);
+          pdf.text(`${index + 1}. ${sessionLabel}`, 15, infoY);
+          infoY += 5;
         });
-        pdf.setFontSize(14);
-        pdf.text('Comparativo de Sessões', 15, 15);
-        pdf.text('Comparativo de Sessões', 15, 15);
-
-        const comparisonImgData = comparisonCanvas.toDataURL('image/png');
-        const comparisonWidth = 270;
-        const comparisonHeight =
-          (comparisonCanvas.height * comparisonWidth) / comparisonCanvas.width;
-
-        const maxHeight = 180; // altura máxima disponível na página A4 landscape
-        let finalHeight = comparisonHeight;
-        let finalY = 25;
-
-        if (comparisonHeight > maxHeight) {
-          finalHeight = maxHeight;
-          finalY = 20;
-        }
-
-        pdf.addImage(comparisonImgData, 'PNG', 15, finalY, comparisonWidth, finalHeight);
-
-        if (comparisonHeight > maxHeight) {
-          pdf.addPage();
-        }
       }
 
+      pdf.addPage();
+      if (pdfComparisonRef.current) {
+        const comparisonCanvas = await html2canvas(pdfComparisonRef.current, {
+          backgroundColor: '#fff',
+          scale: 2,
+        });
+        const comparisonImg = comparisonCanvas.toDataURL('image/png');
+        pdf.addImage(comparisonImg, 'PNG', 15, 10, 270, 120); // mm
+      } else {
+        pdf.setFontSize(12);
+        pdf.setTextColor(200, 0, 0);
+        pdf.text('Erro ao exportar comparativo.', 15, 30);
+      }
+      infoY += 5;
+      pdf.setFontSize(14);
+      pdf.setTextColor(246, 150, 79);
+      pdf.text('Gráfico das Sessões', 15, infoY);
+      infoY += 5;
+      if (pdfChartRef.current) {
+        const chartCanvas = await html2canvas(pdfChartRef.current, {
+          backgroundColor: '#fff',
+          scale: 2,
+        });
+        const chartImg = chartCanvas.toDataURL('image/png');
+        pdf.addImage(chartImg, 'PNG', 15, infoY, 270, 120); // mm
+        infoY += 120 + 5;
+      } else {
+        pdf.setFontSize(12);
+        pdf.setTextColor(200, 0, 0);
+        pdf.text('Erro ao exportar gráfico.', 15, infoY + 10);
+        infoY += 15;
+      }
       for (let i = 0; i < selectedSessions.length; i++) {
         const session = sessionData[selectedSessions[i]];
         if (!session) continue;
 
-        if (i > 0) {
+        if (i >= 0) {
           pdf.addPage();
         }
 
         pdf.setFontSize(14);
-        pdf.text(`Parciais da Sessão ${i + 1}: ${formatSessionLabel(selectedSessions[i])}`, 15, 15);
+        pdf.setTextColor(246, 150, 79); // Orange color
+        pdf.text(`Detalhes da Sessão ${i + 1}: ${formatSessionLabel(selectedSessions[i])}`, 15, 15);
 
         pdf.setFontSize(10);
+        pdf.setTextColor(0, 0, 0); // Black color
 
         const intervals = Object.keys(session.velocidade || {}).length;
         const duration = intervals * 5;
@@ -517,16 +521,18 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
         pdf.text(`Distância: ${session.distancia} metros`, 15, 25);
         pdf.text(`Pontuação: ${session.pontuacao}`, 15, 30);
         pdf.text(`Duração: ${durationFormatted}`, 15, 35);
+
+        // Create table headers
         pdf.setFontSize(10);
         pdf.text('Tempo (s)', 15, 45);
         pdf.text('BPM', 60, 45);
         pdf.text('EMG', 100, 45);
         pdf.text('Velocidade', 140, 45);
-        pdf.text('Velocidade', 140, 45);
 
         let tableY = 50;
         const rowHeight = 7;
 
+        // Add table data
         Object.entries(session.velocidade || {}).forEach(([timeKey, velocity]) => {
           if (tableY > 180) {
             pdf.addPage();
@@ -537,20 +543,36 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
             pdf.text('Velocidade', 140, tableY);
             tableY += rowHeight;
           }
+
           pdf.text(timeKey, 15, tableY);
           pdf.text(String(session.BPM?.[Number(timeKey)] || ''), 60, tableY);
           pdf.text(String(session.EMG?.[Number(timeKey)] || ''), 100, tableY);
-          pdf.text(String(velocity || ''), 140, tableY);
           pdf.text(String(velocity || ''), 140, tableY);
 
           tableY += rowHeight;
         });
       }
 
-      pdf.save('victus-relatorio-completo.pdf');
+      // Add footer with generation date
+      const totalPages = pdf.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(128, 128, 128); // Gray color
+        pdf.text(
+          `Gerado em ${new Date().toLocaleString('pt-BR')}`,
+          pdf.internal.pageSize.width - 60,
+          pdf.internal.pageSize.height - 10,
+        );
+      }
+
+      pdf.save(`victus-relatorio-${patientName.toLowerCase().replace(/\s+/g, '-')}.pdf`);
     } catch (error) {
       console.error('Erro ao gerar PDF completo:', error);
       alert('Ocorreu um erro ao gerar o PDF completo. Por favor, tente novamente.');
+    } finally {
+      setPdfChartReady(false);
+      setPdfComparisonReady(false);
     }
   };
 
@@ -558,27 +580,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
     <Box
       sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}
     >
-      {process.env.NODE_ENV === 'development' && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 4,
-            right: 4,
-            bgcolor: renderStats.timeSinceLastRender < 200 ? 'error.main' : 'success.main',
-            color: 'white',
-            px: 1,
-            py: 0.5,
-            borderRadius: 1,
-            fontSize: '12px',
-            opacity: 0.7,
-            pointerEvents: 'none',
-          }}
-        >
-          Renders: {renderStats.count}
-          {renderStats.timeSinceLastRender < 200 && ' ⚠️'}
-        </Box>
-      )}
-
       <Box
         sx={{
           width: '100%',
@@ -734,6 +735,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
       {selectedSessions.length ? (
         <SessionComparison
           sessions={selectedSessions.map(sessId => sessionData[sessId]).filter(Boolean)}
+          forceDesktopLayout={true}
         />
       ) : null}
 
@@ -751,6 +753,30 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Gráfico virtual para PDF */}
+      {pdfChartReady && (
+        <div style={{ position: 'absolute', left: -9999, top: 0 }}>
+          <div ref={pdfChartRef} style={{ width: 1122, height: 439, background: '#fff' }}>
+            <ReactApexChart
+              options={chartOptions}
+              series={seriesArray}
+              type="area"
+              width={1122}
+              height={439}
+            />
+          </div>
+        </div>
+      )}
+      {/* Comparativo virtual para PDF */}
+      {pdfComparisonReady && (
+        <SessionComparison
+          sessions={selectedSessions.map(sessId => sessionData[sessId]).filter(Boolean)}
+          forceDesktopLayout={true}
+          pdfComparisonReady={pdfComparisonReady}
+          pdfComparisonRef={pdfComparisonRef}
+        />
+      )}
     </Box>
   );
 };

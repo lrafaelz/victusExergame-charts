@@ -6,7 +6,6 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import { Home } from './routes/home';
 import { App } from './app';
-import { SessionsChart } from './routes/sessionsChart';
 import { NotFound } from './routes/notFound';
 import { ThemeContextProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
@@ -28,10 +27,6 @@ const router = createBrowserRouter([
       {
         path: '/',
         element: <Home />,
-      },
-      {
-        path: '/graficos',
-        element: <SessionsChart />,
       },
       {
         path: '/login',

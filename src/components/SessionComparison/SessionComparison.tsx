@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { Box } from '@mui/material';
 import { PacienteSession } from '../../types/patientData';
 import { useSessionComparison } from './SessionComparison.functions';
@@ -7,10 +7,17 @@ import { SessionSummary } from './SessionSummary';
 
 interface SessionComparisonProps {
   sessions: PacienteSession[];
+  forceDesktopLayout?: boolean;
+  pdfComparisonRef?: React.RefObject<HTMLDivElement>;
+  pdfComparisonReady?: boolean;
 }
 
-const SessionComparison: React.FC<SessionComparisonProps> = ({ sessions }) => {
-  const comparisonRef = useRef<HTMLDivElement>(null);
+const SessionComparison: React.FC<SessionComparisonProps> = ({
+  sessions,
+  forceDesktopLayout = false,
+  pdfComparisonRef,
+  pdfComparisonReady,
+}) => {
   const { calcAvgSpeed, getFirstAndLastSession, calculateSpeedChange } =
     useSessionComparison(sessions);
 
@@ -27,14 +34,20 @@ const SessionComparison: React.FC<SessionComparisonProps> = ({ sessions }) => {
 
   return (
     <Box
-      ref={comparisonRef}
       className="session-comparison-container"
       sx={{
         width: '100%',
         wordBreak: 'break-word',
       }}
     >
-      <SessionSummary first={first} last={last} speedChange={speedChange} />
+      <SessionSummary
+        first={first}
+        last={last}
+        speedChange={speedChange}
+        forceDesktopLayout={forceDesktopLayout}
+        pdfComparisonRef={pdfComparisonRef}
+        pdfComparisonReady={pdfComparisonReady}
+      />
       <SessionDetails sessions={sessions} />
     </Box>
   );

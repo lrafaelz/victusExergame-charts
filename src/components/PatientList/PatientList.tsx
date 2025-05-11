@@ -1,8 +1,6 @@
-import { Box, Grid, Typography, TextField, InputAdornment } from '@mui/material';
+import { Box } from '@mui/material';
 import { Patient } from '../../types/patientData';
-import { PatientAvatar } from '../PatientAvatar/PatientAvatar';
-import PatientButton from '../PatientButton/PatientButton';
-import SearchIcon from '@mui/icons-material/Search';
+
 import { usePatientList } from './PatientList.functions';
 import { SearchField } from './SearchField';
 import { PatientGrid } from './PatientGrid';
@@ -27,7 +25,7 @@ export const PatientList: React.FC<PatientListProps> = ({
 
   return (
     <Box sx={{ width: '100%', p: 2 }}>
-      <SearchField searchTerm={searchTerm} onSearchChange={handleSearchChange} />
+      {!compact && <SearchField searchTerm={searchTerm} onSearchChange={handleSearchChange} />}
       <PatientGrid
         patients={filteredPatients}
         selectedPatient={selectedPatient}

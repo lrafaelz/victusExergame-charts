@@ -4,7 +4,7 @@ import { SessionData } from '../utils/sessionData';
 import Spinner from 'react-bootstrap/Spinner';
 
 interface ReactApexChartProps {
-  dataArray: SessionData[]; // The array of values to plot
+  dataArray: SessionData[];
 }
 interface SeriesItem {
   name: string;

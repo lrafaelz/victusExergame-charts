@@ -32,7 +32,7 @@ export const PatientGrid: React.FC<PatientGridProps> = ({
             </Grid>
           ))
         : patients.map((patient, index) => (
-            <Grid size={{ xs: 12, sm: 6 }} key={index}>
+            <Grid size={{ xs: 12 }} key={index}>
               <PatientAvatar
                 patient={patient}
                 selectedPatient={selectedPatient}
