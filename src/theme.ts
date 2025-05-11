@@ -1,6 +1,6 @@
 import { createTheme } from '@mui/material/styles';
-import { ThemeColors } from './contexts/ThemeContext';
 import { ptBR } from '@mui/x-date-pickers/locales';
+import { ThemeColors } from './contexts/themeContextTypes';
 
 const colors = {
   text: '#373435',
