@@ -18,10 +18,7 @@ export const PatientList: React.FC<PatientListProps> = ({
   onSelectPatient,
   compact = false,
 }) => {
-  const { searchTerm, filteredPatients, handleSearchChange } = usePatientList(
-    patients,
-    onSelectPatient,
-  );
+  const { searchTerm, filteredPatients, handleSearchChange } = usePatientList(patients);
 
   return (
     <Box sx={{ width: '100%', p: 2 }}>
