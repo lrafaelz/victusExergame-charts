@@ -26,7 +26,14 @@ const SessionComparison: React.FC<SessionComparisonProps> = ({ sessions }) => {
   const speedChange = calculateSpeedChange(firstAvg, lastAvg);
 
   return (
-    <Box ref={comparisonRef} className="session-comparison-container">
+    <Box
+      ref={comparisonRef}
+      className="session-comparison-container"
+      sx={{
+        width: '100%',
+        wordBreak: 'break-word',
+      }}
+    >
       <SessionSummary first={first} last={last} speedChange={speedChange} />
       <SessionDetails sessions={sessions} />
     </Box>

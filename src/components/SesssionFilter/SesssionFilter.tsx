@@ -328,7 +328,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   const renderCharts = () => {
     if (!seriesArray.length) return null;
     return (
-      <Box sx={{ mt: 4, width: '100%', position: 'relative' }} ref={chartRef}>
+      <Box sx={{ mt: 4, width: '100%' }} ref={chartRef}>
         {/* Mostrar mensagem apenas em dispositivos móveis */}
         {(isXs || isSm) && (
           <Typography variant="body2" color="textDisabled" sx={{ mb: 1, textAlign: 'center' }}>
