@@ -2,18 +2,13 @@ import React, { useMemo } from 'react';
 import { createContext, useContext, useState } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import generateTheme from '../theme';
-
-export type ThemeColors = {
-  primary: string;
-  secondary: string;
-  dark: string;
-};
+import { ThemeColors, defaultThemeColors } from './themeContextTypes';
 
 const ThemeContext = createContext<{
   themeColors: ThemeColors;
   setThemeColors: React.Dispatch<React.SetStateAction<ThemeColors>>;
 }>({
-  themeColors: { primary: '#f47619', secondary: '#f8aa71', dark: '#c26a29' },
+  themeColors: defaultThemeColors,
   setThemeColors: () => {
     console.warn('setThemeColors foi chamado fora do ThemeContextProvider.');
   },

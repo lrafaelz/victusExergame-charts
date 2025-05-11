@@ -1,10 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Patient } from '../../types/patientData';
 
-export const usePatientList = (
-  patients: Patient[],
-  onSelectPatient: (patient: Patient) => void,
-) => {
+export const usePatientList = (patients: Patient[]) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredPatients = useMemo(() => {

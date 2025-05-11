@@ -1,8 +1,8 @@
 import { createContext, useEffect, useState, useContext, useRef } from 'react';
-import db, { auth } from '../firebase';
+import { auth } from '../firebase';
 import { AuthContextType, UserInfo } from '../types/auth';
-import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
+import { fetchUserName } from './authContextUtils';
 
 const AuthContext = createContext<AuthContextType & { loading: boolean }>({
   user: null,
@@ -72,18 +72,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isUpdatingName.current = false;
       });
   }, [user]); // Incluindo user como dependência completa
-
-  const fetchUserName = async (user: UserInfo) => {
-    if (!user.email) return null;
-
-    const userRef = doc(db, 'VictusExergame', 'SRF', 'Fisioterapeutas', user.email);
-    const docSnap = await getDoc(userRef);
-    if (docSnap.exists()) {
-      return docSnap.data().nome;
-    } else {
-      return null;
-    }
-  };
 
   const logout = async () => {
     await auth

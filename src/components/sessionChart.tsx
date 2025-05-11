@@ -67,7 +67,7 @@ export const SessionChart: React.FC<ReactApexChartProps> = ({ dataArray }) => {
 
   useEffect(() => {
     setup();
-  }, [dataArray]);
+  }, [dataArray, setup]);
 
   // Render the chart
   return (

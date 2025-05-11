@@ -1,15 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-
-interface InstallContextType {
-  showInstallButton: boolean;
-  handleInstallClick: () => void;
-}
-
-interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
-  prompt(): Promise<void>;
-}
+import { InstallContextType, BeforeInstallPromptEvent } from './installContextTypes';
 
 const InstallContext = createContext<InstallContextType | undefined>(undefined);
 
