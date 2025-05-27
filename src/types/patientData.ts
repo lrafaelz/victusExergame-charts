@@ -18,4 +18,5 @@ export interface PacienteSession {
   velocidade: {
     [key: number]: number;
   };
+  pista: string;
 }

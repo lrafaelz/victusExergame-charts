@@ -27,7 +27,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import moment from 'moment';
 import 'moment/locale/pt-br';
-import { getPacientePista, getPaciente } from '../../firestore/pacientes';
+import { getAllSessionsByPatient, getPaciente } from '../../firestore/pacientes';
 import { PacienteSession } from '../../types/patientData';
 import ReactApexChart from 'react-apexcharts';
 import SessionComparison from '../SessionComparison/SessionComparison';
@@ -83,6 +83,21 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   const [pdfComparisonReady, setPdfComparisonReady] = useState(false);
   const pdfChartRef = useRef<HTMLDivElement | null>(null);
   const pdfComparisonRef = useRef<HTMLDivElement | null>(null);
+
+  // Helper function to get chip color based on track name
+  const getTrackColor = (trackName: string | undefined) => {
+    if (!trackName) return 'default';
+
+    const trackColors: Record<string, string> = {
+      'pista 1': 'primary.main',
+      'pista 2': 'success.main',
+      'pista 3': 'warning.main',
+      'pista 4': 'error.main',
+      'pista 5': 'info.main',
+    };
+
+    return trackColors[trackName.toLowerCase()] || 'grey.500';
+  };
 
   // Função para extrair a data do ID da sessão
   const extractDateFromSessionId = useMemo(() => {
@@ -151,7 +166,7 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
   // Busca sessões
   useEffect(() => {
     if (!patientId) return;
-    getPacientePista(patientId).then(sessions => {
+    getAllSessionsByPatient(patientId).then(sessions => {
       const ids = sessions.map(s => s.id);
       setAvailableSessions(ids);
 
@@ -637,12 +652,42 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
                     );
                   }}
                 >
-                  {availableSessions.map(sess => (
-                    <MenuItem key={sess} value={sess}>
-                      <Checkbox checked={selectedSessions.includes(sess)} />
-                      <ListItemText primary={formatSessionLabel(sess)} />
-                    </MenuItem>
-                  ))}
+                  {availableSessions.map(sessId => {
+                    const session = sessionData[sessId];
+                    const trackName = session?.pista || 'N/A';
+                    const chipColor = getTrackColor(trackName);
+                    return (
+                      <MenuItem key={sessId} value={sessId}>
+                        <Checkbox checked={selectedSessions.includes(sessId)} />
+                        <ListItemText
+                          primary={
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                width: '100%',
+                              }}
+                            >
+                              {formatSessionLabel(sessId)}
+                              <Chip
+                                label={trackName}
+                                size="small"
+                                sx={{
+                                  ml: 1,
+                                  bgcolor: chipColor,
+                                  color:
+                                    chipColor !== 'default' && chipColor !== 'grey.500'
+                                      ? 'white'
+                                      : 'black',
+                                }}
+                              />
+                            </Box>
+                          }
+                        />
+                      </MenuItem>
+                    );
+                  })}
                 </Select>
               </FormControl>
 

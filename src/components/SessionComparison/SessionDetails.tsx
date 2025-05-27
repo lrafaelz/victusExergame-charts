@@ -48,7 +48,15 @@ export const SessionDetails: React.FC<SessionDetailsProps> = ({ sessions }) => {
                   <Typography>{`Sessão ${index + 1} (${session.id})`}</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Typography variant="body2">Distância: {session.distancia} metros</Typography>
+                  <Typography variant="body2">
+                    Pista:{' '}
+                    <span style={{ textTransform: 'capitalize' }}>
+                      {session.pista.toLowerCase()}
+                    </span>
+                  </Typography>
+                  <Typography variant="body2">
+                    Distância: {session.distancia.toFixed(2)} metros
+                  </Typography>
                   <Typography variant="body2">Pontuação: {session.pontuacao}</Typography>
                   <Typography variant="body2" gutterBottom>
                     Duração: {durationFormatted}

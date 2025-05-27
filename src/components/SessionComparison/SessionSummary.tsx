@@ -40,9 +40,13 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
           <Grid size={{ xs: 6, sm: 4 }}>
             <Typography variant="subtitle2">Distância percorrida</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-              <Typography variant="h5" fontWeight="bold">{`${first.distancia}m`}</Typography>
+              <Typography variant="h5" fontWeight="bold">{`${first.distancia.toFixed(
+                1,
+              )}m`}</Typography>
               <TrendingFlatRounded />
-              <Typography variant="h5" fontWeight="bold">{`${last.distancia}m`}</Typography>
+              <Typography variant="h5" fontWeight="bold">{`${last.distancia.toFixed(
+                1,
+              )}m`}</Typography>
             </Box>
           </Grid>
           <Grid size={{ xs: 6, sm: 4 }}>
