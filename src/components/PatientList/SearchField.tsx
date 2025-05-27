@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextField, InputAdornment, Typography } from '@mui/material';
+import { TextField, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 
 interface SearchFieldProps {
@@ -10,9 +10,6 @@ interface SearchFieldProps {
 export const SearchField: React.FC<SearchFieldProps> = ({ searchTerm, onSearchChange }) => {
   return (
     <>
-      <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
-        Pacientes
-      </Typography>
       <TextField
         fullWidth
         variant="outlined"
@@ -20,7 +17,6 @@ export const SearchField: React.FC<SearchFieldProps> = ({ searchTerm, onSearchCh
         value={searchTerm}
         onChange={onSearchChange}
         sx={{
-          mb: 2,
           '& .MuiOutlinedInput-root': {
             '& fieldset': {
               borderRadius: 4,
