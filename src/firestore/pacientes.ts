@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, getDoc, setDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, getDoc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Patient } from '../types/patientData';
 import db from '../firebase';
 
@@ -45,7 +45,7 @@ async function getPistasDisponiveis(pacienteId: string): Promise<string[] | null
     return dadosPaciente.pistasDisponiveis || [];
   }
 
-  console.log('Paciente não encontrado!');
+  console.error('Paciente não encontrado!');
   return null;
 }
 
@@ -61,7 +61,7 @@ export async function getAllSessionsByPatient(pacienteId: string) {
 
   // Se o paciente não tiver pistas, retorna um array vazio.
   if (!pistas || pistas.length === 0) {
-    console.log(`Nenhuma pista encontrada para o paciente ${pacienteId}`);
+    console.error(`Nenhuma pista encontrada para o paciente ${pacienteId}`);
     return [];
   }
 
@@ -88,8 +88,6 @@ export async function getAllSessionsByPatient(pacienteId: string) {
       ...document.data(), // Todos os outros dados da sessão (distancia, tempo, etc.)
     }));
   });
-
-  console.log(allSessions);
 
   return allSessions;
 }
@@ -143,4 +141,29 @@ export async function createPaciente(
     id: pacienteId,
     ...pacienteData,
   };
+}
+
+/**
+ * Atualiza os dados de um paciente existente no Firestore.
+ * @param pacienteId - ID do paciente a ser atualizado.
+ * @param data - Objeto contendo os campos a serem atualizados.
+ */
+export async function updatePaciente(
+  pacienteId: string,
+  data: Partial<Omit<Patient, 'id'>>,
+): Promise<void> {
+  const pacienteRef = doc(db, 'VictusExergame', 'SRF', 'Pacientes', pacienteId);
+  // Make sure to not try to update the id
+  const updateData = { ...data };
+  delete (updateData as Partial<Patient>).id; // Remove id if it exists
+  await updateDoc(pacienteRef, updateData);
+}
+
+/**
+ * Remove um paciente do Firestore.
+ * @param pacienteId - ID do paciente a ser removido.
+ */
+export async function deletePaciente(pacienteId: string): Promise<void> {
+  const pacienteRef = doc(db, 'VictusExergame', 'SRF', 'Pacientes', pacienteId);
+  await deleteDoc(pacienteRef);
 }

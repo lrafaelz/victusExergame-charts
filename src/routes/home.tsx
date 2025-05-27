@@ -39,7 +39,11 @@ export const Home = () => {
     setDrawerOpen(!drawerOpen);
   };
 
-  const onSelectPatient = (patient: Patient) => {
+  const onSelectPatient = (patient: Patient | null): void => {
+    if (patient === null) {
+      setSelectedPatient(null);
+      return;
+    }
     if (selectedPatient && patient.id === selectedPatient.id) {
       setSelectedPatient(null);
     } else {
@@ -140,6 +144,7 @@ export const Home = () => {
             compact={!drawerOpen}
             selectedPatient={selectedPatient}
             onSelectPatient={onSelectPatient}
+            onPatientsUpdate={fetchPatients}
           />
         </Box>
       </Drawer>
@@ -196,6 +201,7 @@ export const Home = () => {
                 compact={false}
                 selectedPatient={selectedPatient}
                 onSelectPatient={onSelectPatient}
+                onPatientsUpdate={fetchPatients}
               />
             )}
           </Box>

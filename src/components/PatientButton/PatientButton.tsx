@@ -1,5 +1,7 @@
 import React from 'react';
-import { Typography, Paper, ButtonBase } from '@mui/material';
+import { Typography, Paper, ButtonBase, Box } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 interface PatientButtonProps {
   name: string | undefined;
@@ -7,6 +9,7 @@ interface PatientButtonProps {
   description?: string;
   isSelected?: boolean;
   onClick?: () => void;
+  selectionMode?: 'edit' | 'delete' | null;
 }
 
 const PatientButton: React.FC<PatientButtonProps> = ({
@@ -15,6 +18,7 @@ const PatientButton: React.FC<PatientButtonProps> = ({
   description = 'Description',
   isSelected = false,
   onClick,
+  selectionMode = null,
 }) => {
   return (
     <ButtonBase
@@ -31,6 +35,7 @@ const PatientButton: React.FC<PatientButtonProps> = ({
         borderRadius: 2,
         border: isSelected ? '2px solid' : '1px solid',
         borderColor: isSelected ? 'secondary.main' : 'divider',
+        position: 'relative',
       }}
     >
       <Typography
@@ -50,6 +55,27 @@ const PatientButton: React.FC<PatientButtonProps> = ({
       <Typography variant="body2" color="text.disabled" sx={{ width: '100%' }}>
         {description}
       </Typography>
+
+      {selectionMode && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(2px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 2,
+          }}
+        >
+          {selectionMode === 'edit' && <EditIcon sx={{ color: 'white', fontSize: 40 }} />}
+          {selectionMode === 'delete' && <DeleteIcon sx={{ color: 'white', fontSize: 40 }} />}
+        </Box>
+      )}
     </ButtonBase>
   );
 };

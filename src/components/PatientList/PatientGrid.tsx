@@ -9,6 +9,7 @@ interface PatientGridProps {
   selectedPatient: Patient | null;
   onSelectPatient: (patient: Patient) => void;
   compact?: boolean;
+  selectionMode?: 'edit' | 'delete' | null;
 }
 
 export const PatientGrid: React.FC<PatientGridProps> = ({
@@ -16,6 +17,7 @@ export const PatientGrid: React.FC<PatientGridProps> = ({
   selectedPatient,
   onSelectPatient,
   compact = false,
+  selectionMode = null,
 }) => {
   return (
     <Grid container spacing={2} justifyContent="flex-start">
@@ -28,6 +30,7 @@ export const PatientGrid: React.FC<PatientGridProps> = ({
                 description={patient.detalhes}
                 isSelected={selectedPatient?.id === patient.id}
                 onClick={() => onSelectPatient(patient)}
+                selectionMode={selectionMode}
               />
             </Grid>
           ))

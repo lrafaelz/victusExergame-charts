@@ -17,16 +17,18 @@ import { Patient } from '../../types/patientData';
 
 import { usePatientList } from './PatientList.functions';
 import { SearchField } from './SearchField';
-import { PatientGrid } from './PatientGrid';
+
 import { useState } from 'react';
 import { PatientForm, PatientFormData } from '../PatientForm';
-import { createPaciente } from '../../firestore/pacientes';
+import { createPaciente, updatePaciente, deletePaciente } from '../../firestore/pacientes';
+import { PatientGrid } from './PatientGrid.tsx';
 
 interface PatientListProps {
   patients: Patient[];
   selectedPatient: Patient | null;
-  onSelectPatient: (patient: Patient) => void;
+  onSelectPatient: (patient: Patient | null) => void;
   compact?: boolean;
+  onPatientsUpdate?: () => void;
 }
 
 export const PatientList: React.FC<PatientListProps> = ({
@@ -34,6 +36,7 @@ export const PatientList: React.FC<PatientListProps> = ({
   selectedPatient,
   onSelectPatient,
   compact = false,
+  onPatientsUpdate,
 }) => {
   const { searchTerm, filteredPatients, handleSearchChange } = usePatientList(patients);
   const theme = useTheme();
@@ -45,6 +48,8 @@ export const PatientList: React.FC<PatientListProps> = ({
   const [isPatientFormOpen, setIsPatientFormOpen] = useState(false);
   // State for potential patient data to edit (null for new patient)
   const [editingPatient, setEditingPatient] = useState<PatientFormData | null>(null);
+  // State for selection mode ('edit', 'delete', or null)
+  const [selectionMode, setSelectionMode] = useState<'edit' | 'delete' | null>(null);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -54,10 +59,20 @@ export const PatientList: React.FC<PatientListProps> = ({
     setAnchorEl(null);
   };
 
-  const handleOpenPatientForm = (patient?: PatientFormData) => {
-    setEditingPatient(patient || null);
+  const handleOpenPatientForm = (patient?: Patient) => {
+    if (patient) {
+      setEditingPatient({
+        id: patient.id,
+        name: patient.nome,
+        age: patient.idade?.toString() || '',
+        description: patient.detalhes || '',
+      });
+    } else {
+      setEditingPatient(null);
+    }
     setIsPatientFormOpen(true);
     handleCloseMenu(); // Close menu if open
+    setSelectionMode(null); // Exit selection mode when form opens
   };
 
   const handleClosePatientForm = () => {
@@ -66,17 +81,24 @@ export const PatientList: React.FC<PatientListProps> = ({
   };
 
   const handleSubmitPatientForm = async (data: PatientFormData) => {
-    console.log('Patient form submitted:', data);
-    if (editingPatient) {
+    if (editingPatient && editingPatient.id) {
       // Update existing patient
-      // await updatePaciente(editingPatient.id, data);,
-      console.log('Editing patient:', editingPatient);
+      await updatePaciente(editingPatient.id, {
+        nome: data.name,
+        idade: parseInt(data.age),
+        detalhes: data.description,
+      });
+      console.log('Patient updated:', editingPatient.id, data);
+      onPatientsUpdate?.();
+      if (editingPatient?.id === selectedPatient?.id) {
+        onSelectPatient(null);
+      }
     } else {
       // Create new patient
       await createPaciente(data.name, parseInt(data.age), data.description);
+      console.log('Patient created:', data);
+      onPatientsUpdate?.();
     }
-    // Here you would typically handle API calls to save/update patient data
-    // For now, just closing the form
     handleClosePatientForm();
   };
 
@@ -85,14 +107,46 @@ export const PatientList: React.FC<PatientListProps> = ({
     {
       icon: <EditIcon />,
       name: 'Editar',
-      action: () => console.log('Editar paciente'),
+      action: () => {
+        setSelectionMode('edit');
+        handleCloseMenu();
+      },
     },
-    { icon: <DeleteIcon />, name: 'Excluir', action: () => console.log('Excluir paciente') },
+    {
+      icon: <DeleteIcon />,
+      name: 'Excluir',
+      action: () => {
+        setSelectionMode('delete');
+        handleCloseMenu();
+      },
+    },
   ];
 
   const handleAction = (actionFn: () => void) => {
     actionFn();
     handleCloseMenu();
+  };
+
+  const handlePatientGridSelect = async (patient: Patient) => {
+    if (selectionMode === 'edit') {
+      handleOpenPatientForm(patient);
+    } else if (selectionMode === 'delete') {
+      if (window.confirm(`Tem certeza que deseja excluir o paciente ${patient.nome}?`)) {
+        if (patient.id) {
+          await deletePaciente(patient.id);
+          console.log('Patient deleted:', patient.id);
+          onPatientsUpdate?.();
+          if (patient.id === selectedPatient?.id) {
+            onSelectPatient(null);
+          }
+        } else {
+          console.error('Cannot delete patient without an ID');
+        }
+      }
+      setSelectionMode(null); // Exit selection mode
+    } else {
+      onSelectPatient(patient);
+    }
   };
 
   return (
@@ -151,8 +205,9 @@ export const PatientList: React.FC<PatientListProps> = ({
       <PatientGrid
         patients={filteredPatients}
         selectedPatient={selectedPatient}
-        onSelectPatient={onSelectPatient}
+        onSelectPatient={handlePatientGridSelect}
         compact={compact}
+        selectionMode={selectionMode}
       />
       {isMobile && (
         <SpeedDial
