@@ -36,9 +36,13 @@ const PatientButton: React.FC<PatientButtonProps> = ({
       <Typography
         variant="h6"
         fontWeight="bold"
-        sx={{ width: '100%', textOverflow: 'ellipsis', overflow: 'hidden' }}
+        sx={{
+          width: '100%',
+          textOverflow: 'ellipsis',
+          overflow: 'hidden',
+        }}
       >
-        {name}
+        {name && name.length > 24 ? `${name.slice(0, 30)}...` : name}
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ width: '100%' }}>
         {age} anos

@@ -23,7 +23,7 @@ export const PatientGrid: React.FC<PatientGridProps> = ({
         ? patients.map((patient, index) => (
             <Grid size={{ xs: 12, sm: 6 }} key={index}>
               <PatientButton
-                name={patient.nome?.split(' ')[0]}
+                name={patient.nome}
                 age={patient.idade}
                 description={patient.detalhes}
                 isSelected={selectedPatient?.id === patient.id}
