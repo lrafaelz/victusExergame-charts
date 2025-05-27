@@ -735,7 +735,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
       {selectedSessions.length ? (
         <SessionComparison
           sessions={selectedSessions.map(sessId => sessionData[sessId]).filter(Boolean)}
-          forceDesktopLayout={true}
         />
       ) : null}
 
@@ -772,7 +771,6 @@ const SesssionFilter: React.FC<SesssionFilterProps> = ({ patientId }) => {
       {pdfComparisonReady && (
         <SessionComparison
           sessions={selectedSessions.map(sessId => sessionData[sessId]).filter(Boolean)}
-          forceDesktopLayout={true}
           pdfComparisonReady={pdfComparisonReady}
           pdfComparisonRef={pdfComparisonRef}
         />

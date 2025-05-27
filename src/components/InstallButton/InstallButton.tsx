@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Fab, useTheme, useMediaQuery, Box, IconButton, Typography } from '@mui/material';
+import { Button, useTheme, useMediaQuery, Box, IconButton } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import CloseIcon from '@mui/icons-material/Close';
 import { useInstall } from '../../contexts/InstallContext';
@@ -21,15 +21,17 @@ export const InstallButton: React.FC<InstallButtonProps> = ({ variant = 'button'
       <Box
         sx={{
           position: 'fixed',
-          bottom: 80,
+          top: 16,
           right: 16,
           zIndex: theme.zIndex.speedDial,
         }}
       >
         <Box sx={{ position: 'relative' }}>
-          <Fab
-            color="primary"
+          <Button
+            variant="contained"
             onClick={handleInstallClick}
+            startIcon={<DownloadIcon />}
+            size="small"
             sx={{
               bgcolor: 'orangeVictus',
               '&:hover': {
@@ -38,10 +40,13 @@ export const InstallButton: React.FC<InstallButtonProps> = ({ variant = 'button'
                     ? 'rgba(246, 150, 79, 0.8)'
                     : 'rgba(246, 150, 79, 0.6)',
               },
+              fontSize: '0.875rem',
+              py: 0.5,
+              px: 1.5,
             }}
           >
-            <DownloadIcon />
-          </Fab>
+            Instalar App
+          </Button>
           <IconButton
             size="small"
             onClick={() => setIsVisible(false)}
@@ -52,7 +57,11 @@ export const InstallButton: React.FC<InstallButtonProps> = ({ variant = 'button'
               color: 'black',
               width: 20,
               height: 20,
-
+              bgcolor: 'white',
+              boxShadow: 1,
+              '&:hover': {
+                bgcolor: 'grey.100',
+              },
               '& .MuiSvgIcon-root': {
                 fontSize: 16,
               },
@@ -60,18 +69,6 @@ export const InstallButton: React.FC<InstallButtonProps> = ({ variant = 'button'
           >
             <CloseIcon />
           </IconButton>
-          <Typography
-            sx={{
-              position: 'absolute',
-              bottom: -24,
-              right: 0,
-              fontSize: '0.75rem',
-              color: 'text.secondary',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Instalar App
-          </Typography>
         </Box>
       </Box>
     );

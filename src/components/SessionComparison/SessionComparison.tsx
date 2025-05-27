@@ -7,14 +7,12 @@ import { SessionSummary } from './SessionSummary';
 
 interface SessionComparisonProps {
   sessions: PacienteSession[];
-  forceDesktopLayout?: boolean;
   pdfComparisonRef?: React.RefObject<HTMLDivElement>;
   pdfComparisonReady?: boolean;
 }
 
 const SessionComparison: React.FC<SessionComparisonProps> = ({
   sessions,
-  forceDesktopLayout = false,
   pdfComparisonRef,
   pdfComparisonReady,
 }) => {
@@ -44,7 +42,6 @@ const SessionComparison: React.FC<SessionComparisonProps> = ({
         first={first}
         last={last}
         speedChange={speedChange}
-        forceDesktopLayout={forceDesktopLayout}
         pdfComparisonRef={pdfComparisonRef}
         pdfComparisonReady={pdfComparisonReady}
       />

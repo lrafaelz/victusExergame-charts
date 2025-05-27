@@ -9,7 +9,6 @@ interface SessionSummaryProps {
   first: PacienteSession;
   last: PacienteSession;
   speedChange: number;
-  forceDesktopLayout?: boolean;
   pdfComparisonRef?: React.RefObject<HTMLDivElement>;
   pdfComparisonReady?: boolean;
 }
@@ -18,7 +17,6 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
   first,
   last,
   speedChange,
-  forceDesktopLayout = false,
   pdfComparisonRef,
   pdfComparisonReady,
 }) => {
@@ -36,10 +34,10 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
         <Grid
           container
           alignItems="center"
-          justifyContent="space-between"
+          justifyContent="center"
           sx={{ my: 3, textAlign: 'center' }}
         >
-          <Grid size={forceDesktopLayout ? { md: 4, lg: 4 } : { xs: 12, sm: 4 }}>
+          <Grid size={{ xs: 6, sm: 4 }}>
             <Typography variant="subtitle2">Distância percorrida</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
               <Typography variant="h5" fontWeight="bold">{`${first.distancia}m`}</Typography>
@@ -47,7 +45,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
               <Typography variant="h5" fontWeight="bold">{`${last.distancia}m`}</Typography>
             </Box>
           </Grid>
-          <Grid size={forceDesktopLayout ? { md: 4, lg: 4 } : { xs: 12, sm: 4 }}>
+          <Grid size={{ xs: 6, sm: 4 }}>
             <Typography variant="subtitle2">Velocidade média</Typography>
             <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
               {speedChange >= 0 ? (
@@ -58,7 +56,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
               {speedSummary}
             </Typography>
           </Grid>
-          <Grid size={forceDesktopLayout ? { md: 4, lg: 4 } : { xs: 12, sm: 4 }}>
+          <Grid size={{ xs: 12, sm: 4 }} sx={{ textAlign: 'center', mt: { xs: 2, sm: 0 } }}>
             <Typography variant="subtitle2">Pontuação</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
               <Typography variant="h5" fontWeight="bold">
