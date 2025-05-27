@@ -72,8 +72,15 @@ export async function getAllSessionsByPatient(pacienteId: string) {
     return getDocs(pistaRef);
   });
 
+  console.log('pistas', pistas);
+
   // 3. Executamos todas as promessas em paralelo e esperamos a conclusão de todas.
   const results = await Promise.all(promises);
+
+  console.log(
+    'results',
+    results.flatMap(result => result.docs.map(doc => doc.data())),
+  );
 
   // 4. Agora, processamos os resultados. 'results' é um array de Snapshots.
   // Usamos flatMap para achatar o array de arrays e formatar os dados.

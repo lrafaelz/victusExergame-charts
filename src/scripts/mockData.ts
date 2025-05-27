@@ -31,6 +31,7 @@ const mockSessoes: Record<string, PacienteSession[]> = {
   '1': [
     {
       id: 'session-1-1',
+      pista: 'PISTA 1',
       BPM: {
         // Em repouso: 65-75 BPM
         0: 72, // 0s - início (repouso)
@@ -228,6 +229,7 @@ const mockSessoes: Record<string, PacienteSession[]> = {
     },
     {
       id: 'session-1-2',
+      pista: 'PISTA 1',
       BPM: {
         // Sessão com intensidade um pouco maior
         0: 75, // repouso
@@ -426,6 +428,7 @@ const mockSessoes: Record<string, PacienteSession[]> = {
   '2': [
     {
       id: 'session-2-1',
+      pista: 'PISTA 1',
       BPM: {
         // Paciente com condicionamento intermediário
         0: 80, // repouso (ligeiramente elevado)
@@ -622,6 +625,7 @@ const mockSessoes: Record<string, PacienteSession[]> = {
   '3': [
     {
       id: 'session-3-1',
+      pista: 'PISTA 1',
       BPM: {
         // Paciente com condicionamento mais limitado (pessoa mais idosa)
         0: 78, // repouso
@@ -884,7 +888,7 @@ export async function addMockPacientes() {
             PACIENTES_PATH[1],
             PACIENTES_PATH[2],
             pacienteId,
-            'Pista1',
+            'PISTA 1',
             dataFormatada,
           );
           await setDoc(sessaoRef, sessao);
