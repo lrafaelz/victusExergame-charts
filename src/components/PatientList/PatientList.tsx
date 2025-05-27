@@ -19,6 +19,8 @@ import { usePatientList } from './PatientList.functions';
 import { SearchField } from './SearchField';
 import { PatientGrid } from './PatientGrid';
 import { useState } from 'react';
+import { PatientForm, PatientFormData } from '../PatientForm';
+import { createPaciente } from '../../firestore/pacientes';
 
 interface PatientListProps {
   patients: Patient[];
@@ -39,23 +41,58 @@ export const PatientList: React.FC<PatientListProps> = ({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
+  // State for PatientForm modal
+  const [isPatientFormOpen, setIsPatientFormOpen] = useState(false);
+  // State for potential patient data to edit (null for new patient)
+  const [editingPatient, setEditingPatient] = useState<PatientFormData | null>(null);
+
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleClose = () => {
+  const handleCloseMenu = () => {
     setAnchorEl(null);
   };
 
+  const handleOpenPatientForm = (patient?: PatientFormData) => {
+    setEditingPatient(patient || null);
+    setIsPatientFormOpen(true);
+    handleCloseMenu(); // Close menu if open
+  };
+
+  const handleClosePatientForm = () => {
+    setIsPatientFormOpen(false);
+    setEditingPatient(null); // Clear editing patient data
+  };
+
+  const handleSubmitPatientForm = async (data: PatientFormData) => {
+    console.log('Patient form submitted:', data);
+    if (editingPatient) {
+      // Update existing patient
+      // await updatePaciente(editingPatient.id, data);,
+      console.log('Editing patient:', editingPatient);
+    } else {
+      // Create new patient
+      await createPaciente(data.name, parseInt(data.age), data.description);
+    }
+    // Here you would typically handle API calls to save/update patient data
+    // For now, just closing the form
+    handleClosePatientForm();
+  };
+
   const actions = [
-    { icon: <AddIcon />, name: 'Adicionar', action: () => console.log('Adicionar paciente') },
-    { icon: <EditIcon />, name: 'Editar', action: () => console.log('Editar paciente') },
+    { icon: <AddIcon />, name: 'Adicionar', action: () => handleOpenPatientForm() },
+    {
+      icon: <EditIcon />,
+      name: 'Editar',
+      action: () => console.log('Editar paciente'),
+    },
     { icon: <DeleteIcon />, name: 'Excluir', action: () => console.log('Excluir paciente') },
   ];
 
-  const handleAction = (action: () => void) => {
-    action();
-    handleClose();
+  const handleAction = (actionFn: () => void) => {
+    actionFn();
+    handleCloseMenu();
   };
 
   return (
@@ -90,7 +127,7 @@ export const PatientList: React.FC<PatientListProps> = ({
                 <Menu
                   anchorEl={anchorEl}
                   open={open}
-                  onClose={handleClose}
+                  onClose={handleCloseMenu}
                   anchorOrigin={{
                     vertical: 'bottom',
                     horizontal: 'right',
@@ -133,6 +170,12 @@ export const PatientList: React.FC<PatientListProps> = ({
           ))}
         </SpeedDial>
       )}
+      <PatientForm
+        open={isPatientFormOpen}
+        onClose={handleClosePatientForm}
+        onSubmit={handleSubmitPatientForm}
+        patientData={editingPatient}
+      />
     </Box>
   );
 };

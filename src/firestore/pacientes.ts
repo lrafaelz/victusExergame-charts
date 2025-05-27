@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, getDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, getDoc, setDoc } from 'firebase/firestore';
 import { Patient } from '../types/patientData';
 import db from '../firebase';
 
@@ -114,4 +114,33 @@ export async function getPacientePistaByDate(pacienteId: string, dataSessao: str
     return snapshot.data();
   }
   return null;
+}
+
+/**
+ * Cria um novo paciente no Firestore.
+ * O nome do paciente será usado como ID do documento.
+ * @param nome - Nome do paciente (usado como ID).
+ * @param idade - Idade do paciente.
+ * @param detalhes - Detalhes sobre o paciente.
+ */
+export async function createPaciente(
+  nome: string,
+  idade: number,
+  detalhes: string,
+): Promise<Patient> {
+  const pacienteId = nome; // Usar o nome como ID
+  const pacienteRef = doc(db, 'VictusExergame', 'SRF', 'Pacientes', pacienteId);
+
+  const pacienteData = {
+    nome,
+    idade,
+    detalhes,
+  };
+
+  await setDoc(pacienteRef, pacienteData);
+
+  return {
+    id: pacienteId,
+    ...pacienteData,
+  };
 }
